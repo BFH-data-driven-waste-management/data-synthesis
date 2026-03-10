@@ -1,0 +1,1 @@
+INSERT INTO user_account (id, username, password_hash, enabled, created_at) VALUES (1, 'admin', '$2a$10$A19xI1A8MfNLpIPBUFwBauu6ws5kA2zfvc2rehXAbh9fQKPizGCHG', true, '2025-12-22 17:37:59.919834 +00:00');
