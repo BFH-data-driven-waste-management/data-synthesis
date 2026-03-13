@@ -1,0 +1,21 @@
+simulation:
+  start_date: "2025-01-01T03:00:00+00:00"
+  end_date: "2026-12-31T03:00:00+00:00"
+  seed: 42
+
+bin_activity:
+  initial:
+    poc_bins_active: true
+    late_import_bins_active: false
+
+  transition_probability:
+    active_to_inactive_monthly: 0.01
+    inactive_to_active_monthly: 0.01
+
+  episode_duration:
+    short_share: 0.20
+    short_days_min: 7
+    short_days_max: 14
+    long_share: 0.80
+    long_days_min: 60
+    long_days_max: 120
