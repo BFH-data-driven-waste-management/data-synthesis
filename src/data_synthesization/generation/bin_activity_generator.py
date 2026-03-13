@@ -13,8 +13,8 @@ Bins with created_at=POC_CREATED_AT are active from the start. They were the bin
 Bins with created_at=LATE_IMPORT_CREATED_AT are inactive from the start. They were imported after the PoC during the 
 thesis work.
 """
-POC_CREATED_AT = datetime(2024, 12, 31, 3, 0, 0, tzinfo=timezone.utc)
-LATE_IMPORT_CREATED_AT = datetime(2025, 1, 1, 3, 0, 0, tzinfo=timezone.utc)
+POC_CREATED_AT = datetime(2024, 12, 31, 2, 0, 0, tzinfo=timezone.utc)
+LATE_IMPORT_CREATED_AT = datetime(2025, 1, 1, 2, 0, 0, tzinfo=timezone.utc)
 
 
 @dataclass(frozen=True)
