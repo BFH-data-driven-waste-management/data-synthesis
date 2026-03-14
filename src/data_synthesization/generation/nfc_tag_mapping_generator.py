@@ -30,7 +30,10 @@ def _build_uid(bin_id: int, sequence_index: int) -> str:
     hash = hashlib.sha256(payload.encode("utf-8")).hexdigest().upper()
     return f"0{hash[-13:]}"
 
-
+"""
+idea for the random sampling:
+https://stackoverflow.com/questions/51918580/python-random-list-of-numbers-in-a-range-keeping-with-a-minimum-distance
+"""
 def _draw_replacement_timestamps(
         rng: random.Random,
         start: datetime,
@@ -41,32 +44,20 @@ def _draw_replacement_timestamps(
     if replacement_count <= 0:
         return []
 
-    start_seconds = int(start.timestamp())
-    end_seconds = int(end.timestamp())
     min_gap_seconds = min_mapping_lifetime_days * 24 * 3600
+    total_span_seconds = int((end - start).total_seconds())
+    compressed_range_size = total_span_seconds - replacement_count * min_gap_seconds
 
-    attempts = 0
-    while attempts < 5000:
-        attempts += 1
-        candidates = sorted(
-            datetime.fromtimestamp(rng.randint(start_seconds, end_seconds), tz=timezone.utc)
-            for _ in range(replacement_count)
+    offsets = [
+        i * min_gap_seconds + x
+        for i, x in enumerate(
+            sorted(rng.sample(range(compressed_range_size), replacement_count)),
+            # because start timestamp is already a mapping record.
+            start=1,
         )
+    ]
 
-        valid = True
-        previous = start
-        for ts in candidates:
-            if (ts - previous).total_seconds() < min_gap_seconds:
-                valid = False
-                break
-            previous = ts
-
-        if valid:
-            return candidates
-
-    # deterministic fallback if random sampling cannot find valid timestamps
-    min_gap = timedelta(days=min_mapping_lifetime_days)
-    return [start + (min_gap * index) for index in range(1, replacement_count + 1)]
+    return [start + timedelta(seconds=offset) for offset in offsets]
 
 
 def generate_nfc_tag_mapping_history(
