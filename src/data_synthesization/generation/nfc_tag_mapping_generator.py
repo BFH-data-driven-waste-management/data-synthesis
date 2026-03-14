@@ -30,6 +30,7 @@ def _build_uid(bin_id: int, sequence_index: int) -> str:
     hash = hashlib.sha256(payload.encode("utf-8")).hexdigest().upper()
     return f"0{hash[-13:]}"
 
+
 def _draw_replacement_timestamps(
         rng: random.Random,
         start: datetime,
