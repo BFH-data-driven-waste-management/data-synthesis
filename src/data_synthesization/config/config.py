@@ -6,6 +6,7 @@ from typing import Any
 from data_synthesization.config.config_model.app_config import DatabaseConfig, AppConfig
 from data_synthesization.config.config_model.bin_activity_config import InitialStateConfig, TransitionProbabilityConfig, \
     EpisodeDurationConfig, BinActivityConfig
+from data_synthesization.config.config_model.nfc_tag_mapping_config import NfcTagMappingConfig, NfcTagMappingDistributionConfig
 from data_synthesization.config.config_model.simulation_config import SimulationConfig
 
 
@@ -24,6 +25,7 @@ def load_config(path: str | Path) -> AppConfig:
 
     simulation = raw.get("simulation", {})
     bin_activity = raw.get("bin_activity", {})
+    nfc_tag_mapping = raw.get("nfc_tag_mapping", {})
 
     database_source_name = os.getenv("DATABASE_URL")
     if not database_source_name:
@@ -55,6 +57,13 @@ def load_config(path: str | Path) -> AppConfig:
                 long_share=float(bin_activity["episode_duration"]["long_share"]),
                 long_days_min=int(bin_activity["episode_duration"]["long_days_min"]),
                 long_days_max=int(bin_activity["episode_duration"]["long_days_max"]),
+            ),
+        ),
+        nfc_tag_mapping=NfcTagMappingConfig(
+            min_mapping_lifetime_days=int(nfc_tag_mapping["min_mapping_lifetime_days"]),
+            replacement_distribution=NfcTagMappingDistributionConfig(
+                no_replacement_share=float(nfc_tag_mapping["replacement_distribution"]["no_replacement_share"]),
+                one_replacement_share=float(nfc_tag_mapping["replacement_distribution"]["one_replacement_share"]),
             ),
         ),
         database=DatabaseConfig(database_source_name=database_source_name),

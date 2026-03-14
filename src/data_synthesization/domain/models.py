@@ -13,3 +13,19 @@ class BinActivityRecord:
     bin_id: int
     active: bool
     activity_timestamp: datetime
+
+
+@dataclass(frozen=True)
+class NfcTagMappingRecord:
+    uid: str
+    bin_id: int
+    mapped_at: datetime
+    unmapped_at: datetime | None
+
+
+@dataclass(frozen=True)
+class NfcTagMappingRecord:
+    uid: str
+    bin_id: int
+    mapped_at: datetime
+    unmapped_at: datetime | None

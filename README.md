@@ -33,6 +33,10 @@
    ```bash
    PYTHONPATH=src python -m data_synthesization.main generate-bin-activity --config config/base.yaml
    ```
+5. Run the NFC tag mapping pipeline:
+   ```bash
+   PYTHONPATH=src python -m data_synthesization.main generate-nfc-tag-mapping --config config/base.yaml
+   ```
 
 ## Notes
 - Scripts in `/docker-entrypoint-initdb.d` run only on first initialization of the data volume.

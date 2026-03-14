@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 from psycopg import Connection
 
-from data_synthesization.domain.models import BinActivityRecord
+from data_synthesization.domain.models import BinActivityRecord, NfcTagMappingRecord
 
 
 def insert_bin_activity(conn: Connection, records: Sequence[BinActivityRecord]) -> None:
@@ -14,6 +14,23 @@ def insert_bin_activity(conn: Connection, records: Sequence[BinActivityRecord]) 
             VALUES (%s, %s, %s) \
             """
     payload = [(rec.bin_id, rec.active, rec.activity_timestamp) for rec in records]
+
+    with conn.cursor() as cursor:
+        cursor.executemany(query, payload)
+
+
+def insert_nfc_tag_mappings(conn: Connection, records: Sequence[NfcTagMappingRecord]) -> None:
+    if not records:
+        return
+
+    query = """
+            INSERT INTO nfc_tag_mapping (uid, bin_id, mapped_at, unmapped_at)
+            VALUES (%s, %s, %s, %s) \
+            """
+    payload = [
+        (record.uid, record.bin_id, record.mapped_at, record.unmapped_at)
+        for record in records
+    ]
 
     with conn.cursor() as cursor:
         cursor.executemany(query, payload)

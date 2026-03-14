@@ -19,3 +19,10 @@ bin_activity:
     long_share: 0.80
     long_days_min: 60
     long_days_max: 120
+
+nfc_tag_mapping:
+  min_mapping_lifetime_days: 7
+
+  replacement_distribution:
+    no_replacement_share: 0.60
+    one_replacement_share: 0.30
