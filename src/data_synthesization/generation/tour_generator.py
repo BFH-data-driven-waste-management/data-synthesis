@@ -80,18 +80,25 @@ def generate_tours(vehicle_ids: list[int], config: AppConfig) -> TourGenerationR
             first_virtual_start = real_tour_start
             second_virtual_start = real_tour_start + timedelta(seconds=second_phone_offset)
 
+            first_virtual_end = _build_tour_end(first_virtual_start, tour_timing, rng)
+            second_phone_offset_end = rng.randint(
+                tour_timing.second_phone_offset_min_seconds,
+                tour_timing.second_phone_offset_max_seconds,
+            )
+
+            second_virtual_end = first_virtual_end + timedelta(seconds=second_phone_offset_end) if first_virtual_end.hour != 0 else first_virtual_end
             records.append(
                 TourRecord(
                     vehicle_id=vehicle_id,
                     started_at=first_virtual_start,
-                    ended_at=_build_tour_end(first_virtual_start, tour_timing, rng),
+                    ended_at= first_virtual_end
                 )
             )
             records.append(
                 TourRecord(
                     vehicle_id=vehicle_id,
                     started_at=second_virtual_start,
-                    ended_at=_build_tour_end(second_virtual_start, tour_timing, rng),
+                    ended_at=second_virtual_end,
                 )
             )
 
