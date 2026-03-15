@@ -1,10 +1,11 @@
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 import hashlib
 import random
 
 from data_synthesization.config.config_model.app_config import AppConfig
-from data_synthesization.domain.models import BinRecord, NfcTagMappingRecord
+from data_synthesization.domain.models import BinActivityRecord, BinRecord, NfcTagMappingRecord
 from data_synthesization.utils.time import to_utc
 
 INITIAL_MAPPING_TIMESTAMP = datetime(2025, 1, 1, 2, 30, 0, tzinfo=timezone.utc)
@@ -29,6 +30,7 @@ def _build_uid(bin_id: int, sequence_index: int) -> str:
     payload = f"bin:{bin_id}|mapping_sequence:{sequence_index}"
     hash = hashlib.sha256(payload.encode("utf-8")).hexdigest().upper()
     return f"0{hash[-13:]}"
+
 
 """
 idea for the random sampling:
@@ -60,8 +62,25 @@ def _draw_replacement_timestamps(
     return [start + timedelta(seconds=offset) for offset in offsets]
 
 
+def _is_bin_active_at(
+        bin_id: int,
+        timestamp: datetime,
+        activity_by_bin: dict[int, list[BinActivityRecord]],
+) -> bool:
+    activities = activity_by_bin.get(bin_id, [])
+    last_active_state = False
+
+    for activity in activities:
+        if to_utc(activity.activity_timestamp) > timestamp:
+            break
+        last_active_state = activity.active
+
+    return bool(last_active_state)
+
+
 def generate_nfc_tag_mapping_history(
         bins: list[BinRecord],
+        activities: list[BinActivityRecord],
         config: AppConfig,
 ) -> NfcTagMappingGenerationResult:
     rng = random.Random(config.simulation.seed)
@@ -79,9 +98,11 @@ def generate_nfc_tag_mapping_history(
     replacement_targets = ([0] * no_replacement_count + [1] * one_replacement_count + [2] * two_replacement_count)
     rng.shuffle(replacement_targets)
 
-    # used for stats
+    activity_by_bin: dict[int, list[BinActivityRecord]] = defaultdict(list)
+    for activity in activities:
+        activity_by_bin[activity.bin_id].append(activity)
+
     records: list[NfcTagMappingRecord] = []
-    used_uids: set[str] = set()
 
     for bin_record, target_replacements in zip(bins, replacement_targets):
         mapping_timestamps = [INITIAL_MAPPING_TIMESTAMP]
@@ -95,32 +116,52 @@ def generate_nfc_tag_mapping_history(
             )
         )
 
-        for sequence_index, mapped_at in enumerate(mapping_timestamps):
-            # if there is a later mapping the current mapping receives no unmapping
+        # drop mapped_at timestamps for which the bin is inactive
+        valid_mapping_timestamps = [
+            mapped_at
+            for mapped_at in mapping_timestamps
+            if _is_bin_active_at(bin_record.id, to_utc(mapped_at), activity_by_bin)
+        ]
+
+        for sequence_index, mapped_at in enumerate(valid_mapping_timestamps):
             unmapped_at = (
-                mapping_timestamps[sequence_index + 1]
-                if sequence_index < len(mapping_timestamps) - 1
+                valid_mapping_timestamps[sequence_index + 1]
+                if sequence_index < len(valid_mapping_timestamps) - 1
                 else None
             )
 
-            uid = _build_uid(bin_record.id, sequence_index)
-            used_uids.add(uid)
-
             records.append(
                 NfcTagMappingRecord(
-                    uid=uid,
+                    uid=_build_uid(bin_record.id, sequence_index),
                     bin_id=bin_record.id,
                     mapped_at=mapped_at,
                     unmapped_at=unmapped_at,
                 )
             )
 
+    replacements_by_bin: dict[int, int] = defaultdict(int)
+    for record in records:
+        replacements_by_bin[record.bin_id] += 1
+
+    bins_with_0_replacements = 0
+    bins_with_1_replacement = 0
+    bins_with_2_replacements = 0
+
+    for bin_record in bins:
+        replacement_count_for_bin = max(0, replacements_by_bin.get(bin_record.id, 0) - 1)
+        if replacement_count_for_bin <= 0:
+            bins_with_0_replacements += 1
+        elif replacement_count_for_bin == 1:
+            bins_with_1_replacement += 1
+        else:
+            bins_with_2_replacements += 1
+
     stats = NfcTagMappingGenerationStats(
         total_bins=len(bins),
         generated_rows=len(records),
-        bins_with_0_replacements=no_replacement_count,
-        bins_with_1_replacement=one_replacement_count,
-        bins_with_2_replacements=two_replacement_count,
+        bins_with_0_replacements=bins_with_0_replacements,
+        bins_with_1_replacement=bins_with_1_replacement,
+        bins_with_2_replacements=bins_with_2_replacements,
     )
 
     return NfcTagMappingGenerationResult(records=records, stats=stats)

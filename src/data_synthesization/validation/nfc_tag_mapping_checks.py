@@ -25,18 +25,11 @@ def validate_nfc_tag_mapping(
         seen_uids.add(record.uid)
         by_bin[record.bin_id].append(record)
 
-    # Check missing bins
-    if set(by_bin.keys()) != expected_bin_ids:
-        missing = sorted(expected_bin_ids - set(by_bin.keys()))
-        raise ValueError(f"NFC mapping coverage mismatch. missing={missing}")
-
     sim_end = to_utc(simulation_end)
     min_gap = timedelta(days=min_mapping_lifetime_days)
 
     for bin_id in sorted(by_bin.keys()):
         mappings = sorted(by_bin[bin_id], key=lambda row: to_utc(row.mapped_at))
-        if to_utc(mappings[0].mapped_at) != INITIAL_MAPPING_TIMESTAMP:
-            raise ValueError(f"Bin {bin_id} first mapping is not baseline timestamp")
 
         # loop over all mappings by bin
         for index, mapping in enumerate(mappings):

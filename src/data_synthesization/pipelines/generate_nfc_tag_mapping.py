@@ -1,6 +1,6 @@
 from data_synthesization.config.config import load_config
 from data_synthesization.db.connection import connect
-from data_synthesization.db.reader import read_bins
+from data_synthesization.db.reader import read_bin_activities, read_bins
 from data_synthesization.db.writer import insert_nfc_tag_mappings
 from data_synthesization.generation.nfc_tag_mapping_generator import generate_nfc_tag_mapping_history
 from data_synthesization.validation.nfc_tag_mapping_checks import validate_nfc_tag_mapping
@@ -11,7 +11,8 @@ def run_generate_nfc_tag_mapping(config_path: str) -> None:
 
     with connect(config.database.database_source_name) as connection:
         bins = read_bins(connection)
-        result = generate_nfc_tag_mapping_history(bins, config)
+        activities = read_bin_activities(connection)
+        result = generate_nfc_tag_mapping_history(bins, activities, config)
 
         validate_nfc_tag_mapping(
             records=result.records,
