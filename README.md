@@ -37,6 +37,10 @@
    ```bash
    PYTHONPATH=src python -m data_synthesization.main generate-nfc-tag-mapping --config config/base.yaml
    ```
+6. Run the tour pipeline:
+   ```bash
+   PYTHONPATH=src python -m data_synthesization.main generate-tours --config config/base.yaml
+   ```
 
 ## Notes
 - Scripts in `/docker-entrypoint-initdb.d` run only on first initialization of the data volume.

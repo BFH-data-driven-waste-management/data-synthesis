@@ -1,3 +1,4 @@
+from datetime import date
 from datetime import datetime
 from pathlib import Path
 import os
@@ -14,6 +15,10 @@ def _parse_datetime(value: str) -> datetime:
     if value.endswith("Z"):
         value = value[:-1] + "+00:00"
     return datetime.fromisoformat(value)
+
+
+def _parse_date(value: str) -> date:
+    return date.fromisoformat(value)
 
 
 def load_config(path: str | Path) -> AppConfig:
@@ -35,6 +40,7 @@ def load_config(path: str | Path) -> AppConfig:
         simulation=SimulationConfig(
             start_date=_parse_datetime(simulation["start_date"]),
             end_date=_parse_datetime(simulation["end_date"]),
+            tour_generation_end_date=_parse_date(simulation["tour_generation_end_date"]),
             seed=int(simulation["seed"]),
         ),
         bin_activity=BinActivityConfig(

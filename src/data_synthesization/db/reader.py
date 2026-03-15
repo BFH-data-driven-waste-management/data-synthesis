@@ -5,6 +5,19 @@ from psycopg import Connection
 from data_synthesization.domain.models import BinActivityRecord, BinRecord
 
 
+def read_vehicles(conn: Connection) -> list[int]:
+    query = """
+            SELECT id
+            FROM vehicle
+            ORDER BY id ASC
+            """
+    with conn.cursor() as cursor:
+        cursor.execute(query)
+        rows: Sequence[tuple[int]] = cursor.fetchall()
+
+    return [int(row[0]) for row in rows]
+
+
 def read_bins(conn: Connection) -> list[BinRecord]:
     query = """
             SELECT id, created_at

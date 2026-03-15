@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import date
 from datetime import datetime
 
 
@@ -6,4 +7,5 @@ from datetime import datetime
 class SimulationConfig:
     start_date: datetime
     end_date: datetime
+    tour_generation_end_date: date
     seed: int

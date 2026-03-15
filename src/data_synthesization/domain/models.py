@@ -24,8 +24,7 @@ class NfcTagMappingRecord:
 
 
 @dataclass(frozen=True)
-class NfcTagMappingRecord:
-    uid: str
-    bin_id: int
-    mapped_at: datetime
-    unmapped_at: datetime | None
+class TourRecord:
+    vehicle_id: int
+    started_at: datetime
+    ended_at: datetime | None
