@@ -1,5 +1,6 @@
 from datetime import date
 from datetime import datetime
+from datetime import time
 from pathlib import Path
 import os
 from typing import Any
@@ -8,7 +9,7 @@ from data_synthesization.config.config_model.app_config import DatabaseConfig, A
 from data_synthesization.config.config_model.bin_activity_config import InitialStateConfig, TransitionProbabilityConfig, \
     EpisodeDurationConfig, BinActivityConfig
 from data_synthesization.config.config_model.nfc_tag_mapping_config import NfcTagMappingConfig, NfcTagMappingDistributionConfig
-from data_synthesization.config.config_model.simulation_config import SimulationConfig
+from data_synthesization.config.config_model.simulation_config import SimulationConfig, TourTimingConfig
 
 
 def _parse_datetime(value: str) -> datetime:
@@ -19,6 +20,10 @@ def _parse_datetime(value: str) -> datetime:
 
 def _parse_date(value: str) -> date:
     return date.fromisoformat(value)
+
+
+def _parse_time(value: str) -> time:
+    return time.fromisoformat(value)
 
 
 def load_config(path: str | Path) -> AppConfig:
@@ -42,6 +47,16 @@ def load_config(path: str | Path) -> AppConfig:
             end_date=_parse_datetime(simulation["end_date"]),
             tour_generation_end_date=_parse_date(simulation["tour_generation_end_date"]),
             seed=int(simulation["seed"]),
+            tour_timing=TourTimingConfig(
+                reference_start_time_utc=_parse_time(simulation["tour_timing"]["reference_start_time_utc"]),
+                start_time_delta_min_minutes=int(simulation["tour_timing"]["start_time_delta_min_minutes"]),
+                start_time_delta_max_minutes=int(simulation["tour_timing"]["start_time_delta_max_minutes"]),
+                second_phone_offset_min_seconds=int(simulation["tour_timing"]["second_phone_offset_min_seconds"]),
+                second_phone_offset_max_seconds=int(simulation["tour_timing"]["second_phone_offset_max_seconds"]),
+                reference_end_time_utc=_parse_time(simulation["tour_timing"]["reference_end_time_utc"]),
+                reference_end_time_spread_minutes=int(simulation["tour_timing"]["reference_end_time_spread_minutes"]),
+                next_day_midnight_ending_share=float(simulation["tour_timing"]["next_day_midnight_ending_share"]),
+            ),
         ),
         bin_activity=BinActivityConfig(
             initial=InitialStateConfig(
