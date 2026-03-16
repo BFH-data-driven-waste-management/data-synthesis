@@ -1,132 +1,165 @@
 service_schedule:
   metadata:
-    summer_override_policy: "override_if_denser"
     ordering_policy:
-      - "daily_first"
-      - "more_frequent_first"
-      - "within_same_frequency_keep_defined_order"
-
+      - daily_first
+      - more_frequent_first
+      - within_same_frequency_keep_defined_order
   seasons:
     summer:
       start_month: 5
       start_day: 1
       end_month: 9
       end_day: 30
-
   vehicles:
     - vehicle_number: 1
       rules:
-        - area: "RobertWalser"
+        - area: robertwalser
           frequency:
-            type: "daily"
-
-        - area: "Innenstadt West"
+            type: weekly_days
+            weekdays:
+              - 1
+              - 2
+              - 3
+              - 4
+              - 5
+              - 6
+              - 7
+        - area: innenstadtWest
           frequency:
-            type: "weekly_days"
-            interval_days: [1, 3, 5, 7]
-
-        - area: "Altstadt"
+            type: weekly_days
+            weekdays:
+              - 1
+              - 3
+              - 5
+              - 7
+        - area: altstadt
           frequency:
-            type: "weekly_days"
-            interval_days: [2, 4, 6]
-
-        - area: "Seequartiere"
+            type: weekly_days
+            weekdays:
+              - 2
+              - 4
+              - 6
+        - area: seequartiere
           frequency:
-            type: "weekly_days"
-            weekdays: [1, 3]
+            type: weekly_days
+            weekdays:
+              - 1
           seasonal_overrides:
-            - season: "summer"
+            - season: summer
               frequency:
-                type: "weekly_days"
-                interval_days: [2, 4, 6]
-
-        - area: "Moesli"
+                type: weekly_days
+                weekdays:
+                  - 1
+                  - 3
+                  - 5
+        - area: moesli
           frequency:
-            type: "weekly_days"
-            weekdays: [1]
-
-        - area: "Madretsch"
+            type: weekly_days
+            weekdays:
+              - 6
+        - area: madretsch
           frequency:
-            type: "weekly_days"
-            weekdays: [2]
-
-        - area: "Linde"
+            type: weekly_days
+            weekdays:
+              - 6
+        - area: linde
           frequency:
-            type: "weekly_days"
-            weekdays: [3]
-
-        - area: "Muehlefeld"
+            type: weekly_days
+            weekdays:
+              - 7
+        - area: muehlefeld
           frequency:
-            type: "weekly_days"
-            weekdays: [4]
-
-        - area: "Vingelz"
+            type: weekly_days
+            weekdays:
+              - 4
+        - area: vingelz
           frequency:
-            type: "weekly_days"
-            weekdays: [5]
-
-        - area: "Beaumont"
+            type: weekly_days
+            weekdays:
+              - 5
+        - area: beaumont
           frequency:
-            type: "weekly_days"
-            weekdays: [1]
-
-        - area: "Gurzelen"
+            type: weekly_days
+            weekdays:
+              - 7
+        - area: gurzelen
           frequency:
-            type: "weekly_days"
-            weekdays: [2]
-
+            type: weekly_days
+            weekdays:
+              - 2
     - vehicle_number: 2
       rules:
-        - area: "Innenstadt"
+        - area: innenstadt
           frequency:
-            type: "daily"
-
-        - area: "Innenstadt Ost"
+            type: weekly_days
+            weekdays:
+              - 1
+              - 2
+              - 3
+              - 4
+              - 5
+              - 6
+              - 7
+        - area: innenstadtost
           frequency:
-            type: "weekly_days"
-            interval_days: [1, 3, 5, 7]
-
-        - area: "Innenstadt Nord"
+            type: weekly_days
+            weekdays:
+              - 1
+              - 3
+              - 5
+              - 7
+        - area: innenstadtNord
           frequency:
-            type: "weekly_days"
-            interval_days: [2, 4, 6]
-
-        - area: "Mettsud"
+            type: weekly_days
+            weekdays:
+              - 2
+              - 4
+              - 6
+        - area: seequartiere
           frequency:
-            type: "weekly_days"
-            weekdays: [1]
-
-        - area: "Mettnord"
+            type: weekly_days
+            weekdays:
+              - 7
+        - area: mettSud
           frequency:
-            type: "weekly_days"
-            weekdays: [2]
-
-        - area: "Bözingen"
+            type: weekly_days
+            weekdays:
+              - 1
+        - area: mettNord
           frequency:
-            type: "weekly_days"
-            weekdays: [3]
-
-        - area: "BözingenNord"
+            type: weekly_days
+            weekdays:
+              - 2
+        - area: boezingen
           frequency:
-            type: "weekly_days"
-            weekdays: [4]
-
-        - area: "SportAnlagen"
+            type: weekly_days
+            weekdays:
+              - 3
+        - area: boezingenNord
           frequency:
-            type: "weekly_days"
-            weekdays: [1]
-
-        - area: "Bözingenfeld"
+            type: weekly_days
+            weekdays:
+              - 4
+        - area: sportAnlagen
           frequency:
-            type: "weekly_days"
-            weekdays: [5]
-
-        - area: "Ipsach"
+            type: weekly_days
+            weekdays:
+              - 1
+        - area: boezingenfeld
           frequency:
-            type: "weekly_days"
-            weekdays: [3]
+            type: weekly_days
+            weekdays:
+              - 5
+        - area: ipsach
+          frequency:
+            type: weekly_days
+            weekdays:
+              - 2
           seasonal_overrides:
-            - season: "summer"
+            - season: summer
               frequency:
-                type: "weekly_days"
-                interval_days: [2, 4, 6]
+                type: weekly_days
+                weekdays:
+                  - 2
+                  - 4
+                  - 6
