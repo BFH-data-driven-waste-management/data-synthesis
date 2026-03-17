@@ -2,7 +2,7 @@ from typing import Sequence
 
 from psycopg import Connection
 
-from data_synthesization.domain.models import BinActivityRecord, BinRecord
+from data_synthesization.domain.models import BinActivityRecord, BinRecord, TourRecord
 
 
 def read_vehicles(conn: Connection) -> list[int]:
@@ -45,5 +45,26 @@ def read_bin_activities(conn: Connection) -> list[BinActivityRecord]:
 
     return [
         BinActivityRecord(bin_id=int(row[0]), active=bool(row[1]), activity_timestamp=row[2])
+        for row in rows
+    ]
+
+
+def read_tours(conn: Connection) -> list[TourRecord]:
+    query = """
+            SELECT id, vehicle_id, started_at, ended_at
+            FROM tour
+            ORDER BY started_at ASC, id ASC
+            """
+    with conn.cursor() as cursor:
+        cursor.execute(query)
+        rows: Sequence[tuple[int, int, object, object | None]] = cursor.fetchall()
+
+    return [
+        TourRecord(
+            id=int(row[0]),
+            vehicle_id=int(row[1]),
+            started_at=row[2],
+            ended_at=row[3],
+        )
         for row in rows
     ]

@@ -2,7 +2,13 @@ from collections.abc import Sequence
 
 from psycopg import Connection
 
-from data_synthesization.domain.models import BinActivityRecord, NfcTagMappingRecord, TourRecord
+from data_synthesization.domain.models import (
+    BinActivityRecord,
+    BinVisitRecord,
+    NfcTagMappingRecord,
+    TourRecord,
+    VehicleEmptyingRecord,
+)
 
 
 def insert_bin_activity(conn: Connection, records: Sequence[BinActivityRecord]) -> None:
@@ -45,6 +51,70 @@ def insert_tours(conn: Connection, records: Sequence[TourRecord]) -> None:
             VALUES (%s, %s, %s)
             """
     payload = [(record.started_at, record.ended_at, record.vehicle_id) for record in records]
+
+    with conn.cursor() as cursor:
+        cursor.executemany(query, payload)
+
+
+def insert_bin_visits(conn: Connection, records: Sequence[BinVisitRecord]) -> None:
+    if not records:
+        return
+
+    query = """
+            INSERT INTO bin_visit (
+                client_event_id,
+                event_timestamp,
+                received_timestamp,
+                connectivity_state,
+                fill_level,
+                action,
+                tour_id,
+                nfc_tag_mapping_id
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+    payload = [
+        (
+            record.client_event_id,
+            record.event_timestamp,
+            record.received_timestamp,
+            record.connectivity_state,
+            record.fill_level,
+            record.action,
+            record.tour_id,
+            record.nfc_tag_mapping_id,
+        )
+        for record in records
+    ]
+
+    with conn.cursor() as cursor:
+        cursor.executemany(query, payload)
+
+
+def insert_vehicle_emptyings(conn: Connection, records: Sequence[VehicleEmptyingRecord]) -> None:
+    if not records:
+        return
+
+    query = """
+            INSERT INTO vehicle_emptying (
+                event_timestamp,
+                received_timestamp,
+                client_event_id,
+                connectivity_state,
+                tour_id
+            )
+            VALUES (%s, %s, %s, %s, %s)
+            """
+    payload = [
+        (
+            record.event_timestamp,
+            record.received_timestamp,
+            record.client_event_id,
+            record.connectivity_state,
+            record.tour_id,
+        )
+        for record in records
+    ]
 
     with conn.cursor() as cursor:
         cursor.executemany(query, payload)
