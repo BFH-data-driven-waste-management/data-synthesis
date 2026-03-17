@@ -12,7 +12,6 @@ from data_synthesization.generation.tour_item_generator import (
 )
 from data_synthesization.utils.generation_iterator import iter_generation_days
 from data_synthesization.utils.schedule import load_service_schedule
-from data_synthesization.utils.time import to_utc, parse_datetime
 
 SCHEDULE_PATH = Path("config/schedule.yaml")
 BIN_MAPPING_PATH = Path("data/static/bin_neighbourhood_mapping.csv")
@@ -28,7 +27,7 @@ def run_generate_tour_items(config_path: str) -> None:
 
     bins_by_id = {_bin.id: _bin for _bin in bins}
     for day in iter_generation_days(config):
-        result = generate_day_tour_items(
+        events = generate_day_tour_items(
             day=day,
             vehicles=service_schedule.vehicles,
             seasons=service_schedule.seasons,
@@ -36,7 +35,7 @@ def run_generate_tour_items(config_path: str) -> None:
             bins=bins_by_id,
         )
 
-        for event in result.events:
+        for event in events:
             if isinstance(event, TourItemVisit):
                 print(
                     f"bin_visit day={event.day.isoformat()} vehicle={event.vehicle_number} "

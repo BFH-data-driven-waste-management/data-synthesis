@@ -29,12 +29,6 @@ class VehicleEmptyingEvent:
     coord_y: float
 
 
-@dataclass(frozen=True)
-class TourItemsResult:
-    visits: list[TourItemVisit]
-    events: list[TourItemVisit | VehicleEmptyingEvent]
-
-
 def load_bins_by_area(mapping_path: str | Path) -> dict[str, list[int]]:
     bins_by_area: dict[str, list[int]] = {}
     with Path(mapping_path).open("r", encoding="utf-8") as handle:
@@ -81,7 +75,7 @@ def generate_day_tour_items(
     seasons: dict[str, tuple[tuple[int, int], tuple[int, int]]],
     bins_by_area: dict[str, list[int]],
     bins: dict[int, BinRecord],
-) -> TourItemsResult:
+) -> list[TourItemVisit | VehicleEmptyingEvent]:
     visits: list[TourItemVisit] = []
     events: list[TourItemVisit | VehicleEmptyingEvent] = []
 
@@ -136,4 +130,4 @@ def generate_day_tour_items(
         )
         events.append(end_of_tour_emptying)
 
-    return TourItemsResult(visits=visits, events=events)
+    return events
