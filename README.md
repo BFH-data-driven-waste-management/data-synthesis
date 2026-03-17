@@ -42,6 +42,11 @@
    PYTHONPATH=src python -m data_synthesization.main generate-tours --config config/base.yaml
    ```
 
+8. Run the tour item debug pipeline (prints bin visits + vehicle emptying and stops after day 1):
+   ```bash
+   PYTHONPATH=src python -m data_synthesization.main generate-tour-items --config config/base.yaml
+   ```
+
 7. Build a bin to neighbourhood mapping CSV for generator preprocessing:
    ```bash
    python scripts/assign_bins_to_neighbourhoods.py

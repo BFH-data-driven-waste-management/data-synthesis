@@ -2,6 +2,7 @@ import argparse
 
 from data_synthesization.pipelines.generate_bin_activity import run_generate_bin_activity
 from data_synthesization.pipelines.generate_nfc_tag_mapping import run_generate_nfc_tag_mapping
+from data_synthesization.pipelines.generate_tour_items import run_generate_tour_items
 from data_synthesization.pipelines.generate_tours import run_generate_tours
 
 
@@ -18,6 +19,9 @@ def build_parser() -> argparse.ArgumentParser:
     tour_parser = sub.add_parser("generate-tours", help="Generate synthetic tour data")
     tour_parser.add_argument("--config", required=True, help="Path to YAML config")
 
+    tour_items_parser = sub.add_parser("generate-tour-items", help="Generate tour items and print debug output")
+    tour_items_parser.add_argument("--config", required=True, help="Path to YAML config")
+
     return parser
 
 
@@ -31,6 +35,8 @@ def main() -> None:
         run_generate_nfc_tag_mapping(args.config)
     elif args.command == "generate-tours":
         run_generate_tours(args.config)
+    elif args.command == "generate-tour-items":
+        run_generate_tour_items(args.config)
 
 
 if __name__ == "__main__":

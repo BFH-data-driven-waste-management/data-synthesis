@@ -20,15 +20,17 @@ def read_vehicles(conn: Connection) -> list[int]:
 
 def read_bins(conn: Connection) -> list[BinRecord]:
     query = """
-            SELECT id, created_at
+            SELECT id, coord_x, coord_y, created_at
             FROM bin
             ORDER BY id ASC \
             """
     with conn.cursor() as cursor:
         cursor.execute(query)
-        rows: Sequence[tuple[int, object]] = cursor.fetchall()
+        rows: Sequence[tuple[int, float, float, object]] = cursor.fetchall()
 
-    return [BinRecord(id=int(row[0]), created_at=row[1]) for row in rows]
+    return [BinRecord(id=int(row[0]), coord_x=float(row[1]), coord_y=float(row[2]), created_at=row[3])
+            for row in rows
+            ]
 
 
 def read_bin_activities(conn: Connection) -> list[BinActivityRecord]:

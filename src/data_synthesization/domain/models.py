@@ -5,6 +5,8 @@ from datetime import datetime
 @dataclass(frozen=True)
 class BinRecord:
     id: int
+    coord_x: float
+    coord_y: float
     created_at: datetime
 
 
