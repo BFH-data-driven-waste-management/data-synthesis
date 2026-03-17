@@ -6,7 +6,7 @@ import random
 from data_synthesization.config.config_model.app_config import AppConfig
 from data_synthesization.config.config_model.simulation_config import TourTimingConfig
 from data_synthesization.domain.models import TourRecord
-from data_synthesization.utils.time import to_utc
+from data_synthesization.utils.generation_iterator import iter_generation_days
 
 
 @dataclass(frozen=True)
@@ -19,17 +19,6 @@ class TourGenerationStats:
 class TourGenerationResult:
     records: list[TourRecord]
     stats: TourGenerationStats
-
-
-def _iter_generation_days(config: AppConfig) -> list[date]:
-    simulation_start = to_utc(config.simulation.start_date).date()
-    generation_end = config.simulation.tour_generation_end_date
-
-    if generation_end < simulation_start:
-        return []
-
-    day_count = (generation_end - simulation_start).days + 1
-    return [simulation_start + timedelta(days=offset) for offset in range(day_count)]
 
 
 def _build_base_start(day: date, tour_timing: TourTimingConfig) -> datetime:
@@ -59,7 +48,7 @@ def generate_tours(vehicle_ids: list[int], config: AppConfig) -> TourGenerationR
     rng = random.Random(config.simulation.seed)
     tour_timing = config.simulation.tour_timing
     records: list[TourRecord] = []
-    generation_days = _iter_generation_days(config)
+    generation_days = iter_generation_days(config)
 
     for day in generation_days:
         day_start = _build_base_start(day, tour_timing)

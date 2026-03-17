@@ -1,5 +1,4 @@
 from datetime import date
-from datetime import datetime
 from datetime import time
 from pathlib import Path
 import os
@@ -10,12 +9,7 @@ from data_synthesization.config.config_model.bin_activity_config import InitialS
     EpisodeDurationConfig, BinActivityConfig
 from data_synthesization.config.config_model.nfc_tag_mapping_config import NfcTagMappingConfig, NfcTagMappingDistributionConfig
 from data_synthesization.config.config_model.simulation_config import SimulationConfig, TourTimingConfig
-
-
-def _parse_datetime(value: str) -> datetime:
-    if value.endswith("Z"):
-        value = value[:-1] + "+00:00"
-    return datetime.fromisoformat(value)
+from data_synthesization.utils.time import parse_datetime
 
 
 def _parse_date(value: str) -> date:
@@ -43,8 +37,8 @@ def load_config(path: str | Path) -> AppConfig:
 
     return AppConfig(
         simulation=SimulationConfig(
-            start_date=_parse_datetime(simulation["start_date"]),
-            end_date=_parse_datetime(simulation["end_date"]),
+            start_date=parse_datetime(simulation["start_date"]),
+            end_date=parse_datetime(simulation["end_date"]),
             tour_generation_end_date=_parse_date(simulation["tour_generation_end_date"]),
             seed=int(simulation["seed"]),
             tour_timing=TourTimingConfig(

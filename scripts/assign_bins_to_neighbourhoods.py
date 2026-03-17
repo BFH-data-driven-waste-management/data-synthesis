@@ -111,6 +111,11 @@ def _print_summary(out: pd.DataFrame, total_bins: int) -> None:
     if len(nearest_rows) > 0:
         print(f"max nearest distance (m): {nearest_rows['distance_to_polygon_m'].max():.3f}")
 
+    print("\n# bins per area:")
+    for area, area_df in out.groupby(POLYGON_NAME_COL):
+        print(f"  {area}: {len(area_df)}")
+
+
 
 def main() -> None:
     bins_df = _load_bins()

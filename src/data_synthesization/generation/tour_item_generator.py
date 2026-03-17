@@ -5,7 +5,7 @@ from math import hypot
 from pathlib import Path
 
 from data_synthesization.domain.models import BinRecord
-from data_synthesization.utils.service_schedule import VehicleSchedule, areas_for_vehicle_day
+from data_synthesization.utils.schedule import VehicleSchedule, areas_for_vehicle_day
 
 VEHICLE_EMPTYING_COORDS = (2586282.75, 1218884.52)
 EMTPY_AFTER_VOLUME = 2000
@@ -90,6 +90,9 @@ def generate_day_tour_items(
         # start from Müve instead of street inspectorate
         current_x, current_y = VEHICLE_EMPTYING_COORDS
         areas = areas_for_vehicle_day(vehicle, day, seasons)
+
+        totol_bins_per_vehicle_day = sum(len(bins_by_area.get(area, [])) for area in areas)
+        print(f"vehicle {vehicle.vehicle_number} has {totol_bins_per_vehicle_day} bins on day: {day.isoformat()}")
 
         for area in areas:
             ordered_bins = _nearest_bin_order(

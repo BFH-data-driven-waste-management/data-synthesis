@@ -39,6 +39,11 @@ service_schedule:
               - 2
               - 4
               - 6
+        - area: innenstadtNord
+          frequency:
+            type: weekly_days
+            weekdays:
+              - 6
         - area: seequartiere
           frequency:
             type: weekly_days
@@ -87,6 +92,31 @@ service_schedule:
             type: weekly_days
             weekdays:
               - 2
+        - area: mettSud
+          frequency:
+            type: weekly_days
+            weekdays:
+              - 3
+        - area: mettNord
+          frequency:
+            type: weekly_days
+            weekdays:
+              - 2
+        - area: boezingen
+          frequency:
+            type: weekly_days
+            weekdays:
+              - 3
+        - area: boezingenNord
+          frequency:
+            type: weekly_days
+            weekdays:
+              - 4
+        - area: boezingenfeld
+          frequency:
+            type: weekly_days
+            weekdays:
+              - 5
     - vehicle_number: 2
       rules:
         - area: innenstadt
@@ -114,42 +144,16 @@ service_schedule:
             weekdays:
               - 2
               - 4
-              - 6
         - area: seequartiere
           frequency:
             type: weekly_days
             weekdays:
               - 7
-        - area: mettSud
-          frequency:
-            type: weekly_days
-            weekdays:
-              - 1
-        - area: mettNord
-          frequency:
-            type: weekly_days
-            weekdays:
-              - 2
-        - area: boezingen
-          frequency:
-            type: weekly_days
-            weekdays:
-              - 3
-        - area: boezingenNord
-          frequency:
-            type: weekly_days
-            weekdays:
-              - 4
         - area: sportAnlagen
           frequency:
             type: weekly_days
             weekdays:
               - 1
-        - area: boezingenfeld
-          frequency:
-            type: weekly_days
-            weekdays:
-              - 5
         - area: ipsach
           frequency:
             type: weekly_days
