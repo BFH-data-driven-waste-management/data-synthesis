@@ -1,13 +1,13 @@
 import random
 from collections import defaultdict
-from datetime import date, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from math import hypot
 from pathlib import Path
 from uuid import uuid4
 
 from data_synthesization.config.config import load_config
 from data_synthesization.db.connection import connect
-from data_synthesization.db.reader import read_bins, read_tours
+from data_synthesization.db.reader import read_bin_activities, read_bins, read_tours
 from data_synthesization.db.writer import insert_bin_visits, insert_vehicle_emptyings
 from data_synthesization.domain.models import BinVisitRecord, TourRecord, VehicleEmptyingRecord
 from data_synthesization.generation.tour_item_generator import (
@@ -52,6 +52,23 @@ def _group_tours_by_vehicle_and_day(
     return grouped
 
 
+def _is_bin_active_on_day(
+    day: date,
+    bin_id: int,
+    activities_by_bin: dict[int, list[tuple[datetime, bool]]],
+) -> bool:
+    day_start = datetime.combine(day, time(hour=2, minute=0, second=0, microsecond=0, tzinfo=timezone.utc))
+
+    last_active_state = False
+
+    for activity_timestamp, active in activities_by_bin.get(bin_id, []):
+        if activity_timestamp > day_start:
+            break
+        last_active_state = active
+
+    return last_active_state
+
+
 def run_generate_tour_items(config_path: str) -> None:
     config = load_config(config_path)
     service_schedule = load_service_schedule(SCHEDULE_PATH)
@@ -60,20 +77,34 @@ def run_generate_tour_items(config_path: str) -> None:
 
     with connect(config.database.database_source_name) as connection:
         bins = read_bins(connection)
+        bin_activities = read_bin_activities(connection)
         tours = read_tours(connection)
         tours_by_vehicle_day = _group_tours_by_vehicle_and_day(tours)
         bins_by_id = {_bin.id: _bin for _bin in bins}
+
+        activities_by_bin: dict[int, list[tuple[datetime, bool]]] = defaultdict(list)
+        for activity in bin_activities:
+            activity_timestamp = activity.activity_timestamp.astimezone(timezone.utc)
+            activities_by_bin[activity.bin_id].append((activity_timestamp, activity.active))
 
         bin_visit_records: list[BinVisitRecord] = []
         vehicle_emptying_records: list[VehicleEmptyingRecord] = []
 
         for day in iter_generation_days(config):
+            active_bins_by_id = {
+                bin_id: bin_record
+                for bin_id, bin_record in bins_by_id.items()
+                if _is_bin_active_on_day(day, bin_id, activities_by_bin)
+            }
+
+            print(f"removed #inactive bins: {len(bins_by_id) - len(active_bins_by_id)}")
+
             events = generate_day_tour_items(
                 day=day,
                 vehicles=service_schedule.vehicles,
                 seasons=service_schedule.seasons,
                 bins_by_area=bins_by_area_config,
-                bins=bins_by_id,
+                bins=active_bins_by_id,
             )
 
             events_by_vehicle: dict[int, list[TourItemVisit | VehicleEmptyingEvent]] = defaultdict(list)
