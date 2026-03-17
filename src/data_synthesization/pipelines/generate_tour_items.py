@@ -97,8 +97,6 @@ def run_generate_tour_items(config_path: str) -> None:
                 if _is_bin_active_on_day(day, bin_id, activities_by_bin)
             }
 
-            print(f"removed #inactive bins: {len(bins_by_id) - len(active_bins_by_id)}")
-
             events = generate_day_tour_items(
                 day=day,
                 vehicles=service_schedule.vehicles,
@@ -114,7 +112,6 @@ def run_generate_tour_items(config_path: str) -> None:
             # map bin visits and vehicle emptyings to the correct tour (day, vehicle)
             for vehicle_number, vehicle_events in events_by_vehicle.items():
                 vehicle_tours = tours_by_vehicle_day.get((vehicle_number, day), [])
-                print("tours for day", day, "vehicle", vehicle_number, vehicle_tours)
 
                 # randomly spread events over both virtual tours
                 number_of_events = len(vehicle_events)
