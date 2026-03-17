@@ -8,7 +8,7 @@ from data_synthesization.domain.models import BinRecord
 from data_synthesization.utils.service_schedule import VehicleSchedule, areas_for_vehicle_day
 
 VEHICLE_EMPTYING_COORDS = (2586282.75, 1218884.52)
-EMPTY_AFTER_BIN_COUNT = 20
+EMTPY_AFTER_VOLUME = 2000
 
 
 @dataclass(frozen=True)
@@ -86,7 +86,7 @@ def generate_day_tour_items(
     events: list[TourItemVisit | VehicleEmptyingEvent] = []
 
     for vehicle in vehicles:
-        bins_since_emptying = 0
+        volume_since_emptying = 0
         # start from Müve instead of street inspectorate
         current_x, current_y = VEHICLE_EMPTYING_COORDS
         areas = areas_for_vehicle_day(vehicle, day, seasons)
@@ -99,22 +99,22 @@ def generate_day_tour_items(
                 start_y=current_y,
             )
             for bin_id in ordered_bins:
-                bin_location = bins[bin_id]
+                _bin = bins[bin_id]
                 visit = TourItemVisit(
                     day=day,
                     vehicle_number=vehicle.vehicle_number,
                     area=area,
                     bin_id=bin_id,
-                    coord_x=bin_location.coord_x,
-                    coord_y=bin_location.coord_y,
+                    coord_x=_bin.coord_x,
+                    coord_y=_bin.coord_y,
                 )
                 visits.append(visit)
                 events.append(visit)
-                bins_since_emptying += 1
-                current_x = bin_location.coord_x
-                current_y = bin_location.coord_y
+                volume_since_emptying += _bin.volume
+                current_x = _bin.coord_x
+                current_y = _bin.coord_y
 
-                if bins_since_emptying >= EMPTY_AFTER_BIN_COUNT:
+                if volume_since_emptying >= EMTPY_AFTER_VOLUME:
                     emptying_event = VehicleEmptyingEvent(
                         day=day,
                         vehicle_number=vehicle.vehicle_number,
@@ -122,7 +122,7 @@ def generate_day_tour_items(
                         coord_y=VEHICLE_EMPTYING_COORDS[1],
                     )
                     events.append(emptying_event)
-                    bins_since_emptying = 0
+                    volume_since_emptying = 0
                     current_x, current_y = VEHICLE_EMPTYING_COORDS
 
         end_of_tour_emptying = VehicleEmptyingEvent(

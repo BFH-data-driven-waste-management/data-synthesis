@@ -22,9 +22,9 @@ def run_generate_tour_items(config_path: str) -> None:
     bins_by_area_config = load_bins_by_area(BIN_MAPPING_PATH)
 
     with connect(config.database.database_source_name) as connection:
-        bin_locations_list = read_bins(connection)
+        bins = read_bins(connection)
 
-    bin_locations = {item.id: item for item in bin_locations_list}
+    bins_by_id = {_bin.id: _bin for _bin in bins}
     first_day = to_utc(config.simulation.start_date).date()
 
     result = generate_day_tour_items(
@@ -32,7 +32,7 @@ def run_generate_tour_items(config_path: str) -> None:
         vehicles=service_schedule.vehicles,
         seasons=service_schedule.seasons,
         bins_by_area=bins_by_area_config,
-        bins=bin_locations,
+        bins=bins_by_id,
     )
 
     for event in result.events:
