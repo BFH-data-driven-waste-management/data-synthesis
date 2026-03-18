@@ -147,8 +147,8 @@ def run_generate_tour_items(config_path: str) -> None:
                 number_scanned_by_second_virtual_tour = number_of_events - number_scanned_by_first_virtual_tour
 
                 # array with 1 for first virtual tour, 0 for second virtual tour
-                is_first_virtual_tour = [1] * number_scanned_by_first_virtual_tour + [0] * number_scanned_by_second_virtual_tour
-                rng.shuffle(is_first_virtual_tour)
+                belongs_to_first_virtual_tour = [1] * number_scanned_by_first_virtual_tour + [0] * number_scanned_by_second_virtual_tour
+                rng.shuffle(belongs_to_first_virtual_tour)
 
 
                 for tour_index, tour in enumerate(vehicle_tours):
@@ -156,7 +156,6 @@ def run_generate_tour_items(config_path: str) -> None:
                     current_timestamp = tour.started_at.astimezone(timezone.utc)
 
                     for event_index, event in enumerate(vehicle_events):
-                        # ensure every event is only logged by one tour
                         travel_seconds = _estimate_travel_seconds(
                             start_x=current_x,
                             start_y=current_y,
@@ -169,12 +168,14 @@ def run_generate_tour_items(config_path: str) -> None:
 
                         if isinstance(event, TourItemVisit):
                             # make sure every bin visit is only logged by one virtual tour
-                            event_belongs_not_to_this_virtual_tour = (is_first_virtual_tour[event_index - 1] == 1 and tour_index == 1) or (
-                                    is_first_virtual_tour[event_index - 1] == 0 and tour_index == 0)
+                            event_belongs_not_to_this_virtual_tour = (
+                                (belongs_to_first_virtual_tour[event_index] == 1 and tour_index == 1) or
+                                (belongs_to_first_virtual_tour[event_index] == 0 and tour_index == 0)
+                            )
                             # 1 in 100 bin visits has the chance to be logged by both virtual tours (operator error)
                             event_belongs_to_both_virtual_tour_mistakenly = rng.random() < 0.01
 
-                            if event_belongs_not_to_this_virtual_tour or event_belongs_to_both_virtual_tour_mistakenly:
+                            if not event_belongs_not_to_this_virtual_tour or event_belongs_to_both_virtual_tour_mistakenly:
                                 nfc_tag_mapping_id = _find_mapping_for_bin_visit_day(
                                     exact_time=event_timestamp,
                                     bin_id=event.bin_id,
