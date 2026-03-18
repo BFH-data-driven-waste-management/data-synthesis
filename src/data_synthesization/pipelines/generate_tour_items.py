@@ -7,9 +7,9 @@ from uuid import uuid4
 
 from data_synthesization.config.config import load_config
 from data_synthesization.db.connection import connect
-from data_synthesization.db.reader import read_bin_activities, read_bins, read_tours
+from data_synthesization.db.reader import read_bin_activities, read_bins, read_nfc_tag_mappings, read_tours
 from data_synthesization.db.writer import insert_bin_visits, insert_vehicle_emptyings
-from data_synthesization.domain.models import BinVisitRecord, TourRecord, VehicleEmptyingRecord
+from data_synthesization.domain.models import BinVisitRecord, TourRecord, VehicleEmptyingRecord, NfcTagMappingRecord
 from data_synthesization.generation.tour_item_generator import (
     VEHICLE_EMPTYING_COORDS,
     TourItemVisit,
@@ -69,6 +69,31 @@ def _is_bin_active_on_day(
     return last_active_state
 
 
+def _group_nfc_mappings_by_bin(
+    nfc_tag_mappings: list[NfcTagMappingRecord],
+) -> dict[int, list[NfcTagMappingRecord]]:
+    mappings_by_bin: dict[int, list[NfcTagMappingRecord]] = defaultdict(list)
+
+    for mapping in nfc_tag_mappings:
+        mappings_by_bin[mapping.bin_id].append(mapping)
+
+    for bin_id in mappings_by_bin:
+        mappings_by_bin[bin_id].sort(key=lambda mapping: mapping.mapped_at)
+
+    return mappings_by_bin
+
+
+def _find_mapping_for_bin_visit_day(
+    exact_time: datetime,
+    bin_id: int,
+    mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
+) -> int | None:
+    for mapping in mappings_by_bin.get(bin_id, []):
+        if mapping.mapped_at <= exact_time and (mapping.unmapped_at is None or exact_time < mapping.unmapped_at):
+            return mapping.id
+
+    return None
+
 def run_generate_tour_items(config_path: str) -> None:
     config = load_config(config_path)
     service_schedule = load_service_schedule(SCHEDULE_PATH)
@@ -79,7 +104,10 @@ def run_generate_tour_items(config_path: str) -> None:
         bins = read_bins(connection)
         bin_activities = read_bin_activities(connection)
         tours = read_tours(connection)
+        nfc_tag_mappings = read_nfc_tag_mappings(connection)
+
         tours_by_vehicle_day = _group_tours_by_vehicle_and_day(tours)
+        nfc_mappings_by_bin = _group_nfc_mappings_by_bin(nfc_tag_mappings)
         bins_by_id = {_bin.id: _bin for _bin in bins}
 
         activities_by_bin: dict[int, list[tuple[datetime, bool]]] = defaultdict(list)
@@ -147,6 +175,13 @@ def run_generate_tour_items(config_path: str) -> None:
                             event_belongs_to_both_virtual_tour_mistakenly = rng.random() < 0.01
 
                             if event_belongs_not_to_this_virtual_tour or event_belongs_to_both_virtual_tour_mistakenly:
+                                nfc_tag_mapping_id = _find_mapping_for_bin_visit_day(
+                                    exact_time=event_timestamp,
+                                    bin_id=event.bin_id,
+                                    mappings_by_bin=nfc_mappings_by_bin,
+                                )
+                                if nfc_tag_mapping_id is None:
+                                    continue
                                 bin_visit_records.append(
                                     BinVisitRecord(
                                         client_event_id=str(uuid4()),
@@ -156,7 +191,7 @@ def run_generate_tour_items(config_path: str) -> None:
                                         fill_level="FULL",
                                         action="EMPTIED",
                                         tour_id=tour.id,
-                                        nfc_tag_mapping_id=None,
+                                        nfc_tag_mapping_id=nfc_tag_mapping_id,
                                     )
                                 )
                                 print(

@@ -20,6 +20,7 @@ class BinActivityRecord:
 
 @dataclass(frozen=True)
 class NfcTagMappingRecord:
+    id: int | None
     uid: str
     bin_id: int
     mapped_at: datetime

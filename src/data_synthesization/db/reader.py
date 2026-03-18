@@ -2,7 +2,7 @@ from typing import Sequence
 
 from psycopg import Connection
 
-from data_synthesization.domain.models import BinActivityRecord, BinRecord, TourRecord
+from data_synthesization.domain.models import BinActivityRecord, BinRecord, TourRecord, NfcTagMappingRecord
 
 
 def read_vehicles(conn: Connection) -> list[int]:
@@ -68,3 +68,22 @@ def read_tours(conn: Connection) -> list[TourRecord]:
         )
         for row in rows
     ]
+
+
+def read_nfc_tag_mappings(conn: Connection) -> list[NfcTagMappingRecord]:
+    query = """
+            SELECT id, uid, bin_id, mapped_at, unmapped_at
+            FROM nfc_tag_mapping
+            ORDER BY bin_id ASC, mapped_at ASC, id ASC
+            """
+    with conn.cursor() as cursor:
+        cursor.execute(query)
+        rows: Sequence[tuple[int, str, int, object, object | None]] = cursor.fetchall()
+
+    return [NfcTagMappingRecord(
+        id=int(row[0]),
+        uid=str(row[1]),
+        bin_id=int(row[2]),
+        mapped_at=row[3],
+        unmapped_at=row[4])
+        for row in rows]
