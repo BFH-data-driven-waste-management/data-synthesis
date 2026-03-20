@@ -1,12 +1,12 @@
 import random
 from collections import defaultdict
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timezone, timedelta
 from pathlib import Path
 
 from data_synthesization.config.config import load_config
 from data_synthesization.db.connection import connect
 from data_synthesization.db.reader import read_bin_activities, read_bins, read_nfc_tag_mappings, read_tours
-from data_synthesization.db.writer import insert_bin_visits, insert_vehicle_emptyings
+from data_synthesization.db.writer import insert_bin_visits, insert_vehicle_emptyings, update_tours_ended_at
 from data_synthesization.domain.models import BinActivityRecord, BinRecord, BinVisitRecord, NfcTagMappingRecord, TourRecord, VehicleEmptyingRecord
 from data_synthesization.generation.tour_item_generator import (
     BinVisitEvent,
@@ -135,7 +135,8 @@ def _generate_day_events(
     )
 
 """
-For each vehicle, bin_visit and vehicle_emptying records are generated based on the given day, events and tours
+For each vehicle, bin_visit and vehicle_emptying records are generated based on the given day, events and tours.
+returns a tuple of bin_visit and vehicle_emptying records and a dict of the last vehicle_emptying timestamp per tour (used for closing the tour).
 """
 def _generate_records_for_day(
     day: date,
@@ -148,15 +149,17 @@ def _generate_records_for_day(
     road_network_detour_factor: float,
     seconds_per_bin_visit: int,
     seconds_per_vehicle_emptying: int,
-) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord]]:
+) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
     day_bin_visits: list[BinVisitRecord] = []
     day_vehicle_emptyings: list[VehicleEmptyingRecord] = []
+
+    last_vehicle_emptying_per_tour: dict[int, datetime] = {}
 
     for vehicle_number, vehicle_events in _group_events_by_vehicle(events).items():
         vehicle_tours = tours_by_vehicle_day.get((vehicle_number, day), [])
 
         # expand relation from vehicle_events to actual database relation (nfc_tag_mapping => bin, tour => vehicle)
-        bin_visits, vehicle_emptyings = map_events_to_records_for_vehicle_tours(
+        bin_visits, vehicle_emptyings, last_vehicle_emptying_per_tour_per_vehicle = map_events_to_records_for_vehicle_tours(
             vehicle_events=vehicle_events,
             vehicle_tours=vehicle_tours,
             mappings_by_bin=nfc_mappings_by_bin,
@@ -170,7 +173,9 @@ def _generate_records_for_day(
         day_bin_visits.extend(bin_visits)
         day_vehicle_emptyings.extend(vehicle_emptyings)
 
-    return day_bin_visits, day_vehicle_emptyings
+        last_vehicle_emptying_per_tour.update(last_vehicle_emptying_per_tour_per_vehicle)
+
+    return day_bin_visits, day_vehicle_emptyings, last_vehicle_emptying_per_tour
 
 
 def run_generate_tour_items(config_path: str) -> None:
@@ -195,6 +200,8 @@ def run_generate_tour_items(config_path: str) -> None:
         bin_visit_records: list[BinVisitRecord] = []
         vehicle_emptying_records: list[VehicleEmptyingRecord] = []
 
+        last_vehicle_emptying_per_tour: list[tuple[int, datetime]] = []
+
         for day in iter_generation_days(config):
             # generate synthetic helper objects
             day_events = _generate_day_events(
@@ -207,7 +214,7 @@ def run_generate_tour_items(config_path: str) -> None:
                 empty_after_volume=config.tour_item_generation.empty_after_volume,
             )
             # generate database rows (considerings e.g. mapping via nfc-tag and mapping to virtual tour)
-            day_bin_visits, day_vehicle_emptyings = _generate_records_for_day(
+            day_bin_visits, day_vehicle_emptyings, last_vehicle_emptying_per_tour_per_day = _generate_records_for_day(
                 day=day,
                 events=day_events,
                 tours_by_vehicle_day=tours_by_vehicle_day,
@@ -221,10 +228,19 @@ def run_generate_tour_items(config_path: str) -> None:
             )
             bin_visit_records.extend(day_bin_visits)
             vehicle_emptying_records.extend(day_vehicle_emptyings)
+            last_vehicle_emptying_per_tour.extend([(tour_id, last_emptying) for tour_id, last_emptying in last_vehicle_emptying_per_tour_per_day.items()])
             break
 
         insert_bin_visits(connection, bin_visit_records)
         insert_vehicle_emptyings(connection, vehicle_emptying_records)
+        print(f"TOUR UPDATES {last_vehicle_emptying_per_tour}")
+
+        # close tours after ca. 10 seconds of last vehicle emptying)
+        tours_closed_after_last_vehicle_emptying = [
+            (tour_id, ended_at + timedelta(seconds=rng.randint(8, 12)))
+            for tour_id, ended_at in last_vehicle_emptying_per_tour]
+
+        update_tours_ended_at(connection, tours_closed_after_last_vehicle_emptying)
         connection.commit()
 
     print(f"Generated bin_visit rows: {len(bin_visit_records)}")

@@ -161,6 +161,7 @@ def _append_vehicle_emptying_record_if_logged(
 """
 maps events of a *single virtual tour* to database records.
 for each event the next timestamp is calculated and the event is appended to the correct list of records.
+=> returns the timestamp of the last vehicle_emptying event for later tour closing.
 """
 def _map_single_tour_events_to_records(
     tour_index: int,
@@ -176,9 +177,11 @@ def _map_single_tour_events_to_records(
     road_network_detour_factor: float,
     seconds_per_bin_visit: int,
     seconds_per_vehicle_emptying: int,
-) -> None:
+) -> datetime:
     current_x, current_y = vehicle_emptying_coords
     current_timestamp = tour.started_at.astimezone(timezone.utc)
+
+    last_vehicle_emptying_event_timestamp: datetime | None = None
 
     for event_index, event in enumerate(vehicle_events):
         event_timestamp = _event_timestamp_for_next_stop(
@@ -215,13 +218,21 @@ def _map_single_tour_events_to_records(
                 rng=rng,
                 vehicle_emptying_records=vehicle_emptying_records,
             )
+            last_vehicle_emptying_event_timestamp = event_timestamp
 
         current_x = event.coord_x
         current_y = event.coord_y
 
+    return last_vehicle_emptying_event_timestamp
+
 """
 central function to map synthetic events to database records for a given vehicle.
 loops over the virtual tours of the vehicle.
+
+returns a tuple of:
+- list of bin_visit records
+- list of vehicle_emptying records
+- dict of last vehicle_emptying event timestamp for each virtual tour
 """
 def map_events_to_records_for_vehicle_tours(
     vehicle_events: list[BinVisitEvent | VehicleEmptyingEvent],
@@ -233,14 +244,15 @@ def map_events_to_records_for_vehicle_tours(
     road_network_detour_factor: float,
     seconds_per_bin_visit: int,
     seconds_per_vehicle_emptying: int,
-) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord]]:
+) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
     bin_visit_records: list[BinVisitRecord] = []
     vehicle_emptying_records: list[VehicleEmptyingRecord] = []
 
     belongs_to_first_virtual_tour = _build_virtual_tour_assignments(len(vehicle_events), rng)
+    last_vehicle_emptying_per_tour: dict[int, datetime] = {}
 
     for tour_index, tour in enumerate(vehicle_tours):
-        _map_single_tour_events_to_records(
+        last_vehicle_emptying_at = _map_single_tour_events_to_records(
             tour_index=tour_index,
             tour=tour,
             vehicle_events=vehicle_events,
@@ -255,5 +267,6 @@ def map_events_to_records_for_vehicle_tours(
             seconds_per_bin_visit=seconds_per_bin_visit,
             seconds_per_vehicle_emptying=seconds_per_vehicle_emptying,
         )
+        last_vehicle_emptying_per_tour[tour.id] = last_vehicle_emptying_at
 
-    return bin_visit_records, vehicle_emptying_records
+    return bin_visit_records, vehicle_emptying_records, last_vehicle_emptying_per_tour

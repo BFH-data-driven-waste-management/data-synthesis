@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from datetime import datetime
 
 from psycopg import Connection
 
@@ -116,5 +117,22 @@ def insert_vehicle_emptyings(conn: Connection, records: Sequence[VehicleEmptying
         for record in records
     ]
 
+    with conn.cursor() as cursor:
+        cursor.executemany(query, payload)
+
+def update_tours_ended_at(conn: Connection, records: Sequence[
+    tuple[int, datetime]
+]) -> None:
+    if not records:
+        return
+
+    query  = """
+    UPDATE tour
+    SET ended_at = %s
+        WHERE id = %s
+        AND ended_at IS NULL
+        
+    """
+    payload = [(ended_at, tour_id) for tour_id, ended_at in records]
     with conn.cursor() as cursor:
         cursor.executemany(query, payload)
