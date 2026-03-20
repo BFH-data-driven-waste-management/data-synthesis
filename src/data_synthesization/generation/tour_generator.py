@@ -24,21 +24,18 @@ class TourGenerationResult:
 def _build_base_start(day: date, tour_timing: TourTimingConfig) -> datetime:
     return datetime.combine(day, tour_timing.reference_start_time_utc, tzinfo=timezone.utc)
 
-
-def _build_tour_end(started_at: datetime, tour_timing: TourTimingConfig, rng: random.Random) -> datetime:
+"""
+sets the tour end time to midnight of the next day for a given chance.
+other tour's ended_at will be set in the tour_item_generator
+"""
+def _build_tour_end(started_at: datetime, tour_timing: TourTimingConfig, rng: random.Random) -> datetime | None:
     # 1 of 10 tims the crew forgets to end the tour manually
     if rng.random() < tour_timing.next_day_midnight_ending_share:
         next_day = started_at.date() + timedelta(days=1)
         microsecond = rng.randint(0, 9999)
         return datetime.combine(next_day, time(0, 0, 0, microsecond), tzinfo=timezone.utc)
-
-    minutes_offset = rng.randint(
-        -tour_timing.reference_end_time_spread_minutes,
-        tour_timing.reference_end_time_spread_minutes,
-    )
-    return datetime.combine(started_at.date(), tour_timing.reference_end_time_utc, tzinfo=timezone.utc) + timedelta(
-        minutes=minutes_offset
-    )
+    else:
+        return None
 
 
 def generate_tours(vehicle_ids: list[int], config: AppConfig) -> TourGenerationResult:
@@ -70,21 +67,19 @@ def generate_tours(vehicle_ids: list[int], config: AppConfig) -> TourGenerationR
             second_virtual_start = real_tour_start + timedelta(seconds=second_phone_offset)
 
             first_virtual_end = _build_tour_end(first_virtual_start, tour_timing, rng)
-            second_phone_offset_end = rng.randint(
-                tour_timing.second_phone_offset_min_seconds,
-                tour_timing.second_phone_offset_max_seconds,
-            )
+            second_virtual_end = _build_tour_end(second_virtual_start, tour_timing, rng)
 
-            second_virtual_end = first_virtual_end + timedelta(seconds=second_phone_offset_end) if first_virtual_end.hour != 0 else first_virtual_end
             records.append(
                 TourRecord(
+                    id=None,
                     vehicle_id=vehicle_id,
                     started_at=first_virtual_start,
-                    ended_at= first_virtual_end
+                    ended_at=first_virtual_end
                 )
             )
             records.append(
                 TourRecord(
+                    id=None,
                     vehicle_id=vehicle_id,
                     started_at=second_virtual_start,
                     ended_at=second_virtual_end,
