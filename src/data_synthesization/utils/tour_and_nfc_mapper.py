@@ -4,12 +4,7 @@ from math import hypot
 from uuid import uuid4
 
 from data_synthesization.domain.models import BinVisitRecord, NfcTagMappingRecord, TourRecord, VehicleEmptyingRecord
-from data_synthesization.generation.tour_item_generator import VEHICLE_EMPTYING_COORDS, BinVisitEvent, VehicleEmptyingEvent
-
-AVERAGE_SPEED_METERS_PER_SECOND = 3
-ROAD_NETWORK_DETOUR_FACTOR = 2
-SECONDS_PER_BIN_VISIT = 120
-SECONDS_PER_VEHICLE_EMPTYING = 300
+from data_synthesization.generation.tour_item_generator import BinVisitEvent, VehicleEmptyingEvent
 
 """
 helper function to estimate the travel time between two coordinates based on euclidean distance and average speed with the use of a detour factor.
@@ -19,10 +14,12 @@ def _estimate_travel_seconds(
     start_y: float,
     target_x: float,
     target_y: float,
+    road_network_detour_factor: float,
+    average_speed_meters_per_second: float,
 ) -> int:
     direct_distance_meters = hypot(target_x - start_x, target_y - start_y)
-    network_distance_meters = direct_distance_meters * ROAD_NETWORK_DETOUR_FACTOR
-    return max(1, int(network_distance_meters / AVERAGE_SPEED_METERS_PER_SECOND))
+    network_distance_meters = direct_distance_meters * road_network_detour_factor
+    return max(1, int(network_distance_meters / average_speed_meters_per_second))
 
 """
 find the nfc tag mapping for a given day and bin. 
@@ -60,14 +57,20 @@ def _event_timestamp_for_next_stop(
     current_y: float,
     current_timestamp: datetime,
     event: BinVisitEvent | VehicleEmptyingEvent,
+    seconds_per_bin_visit: int,
+    seconds_per_vehicle_emptying: int,
+    road_network_detour_factor: float,
+    average_speed_meters_per_second: float,
 ) -> datetime:
     travel_seconds = _estimate_travel_seconds(
         start_x=current_x,
         start_y=current_y,
         target_x=event.coord_x,
         target_y=event.coord_y,
+        road_network_detour_factor=road_network_detour_factor,
+        average_speed_meters_per_second=average_speed_meters_per_second,
     )
-    event_seconds = SECONDS_PER_BIN_VISIT if isinstance(event, BinVisitEvent) else SECONDS_PER_VEHICLE_EMPTYING
+    event_seconds = seconds_per_bin_visit if isinstance(event, BinVisitEvent) else seconds_per_vehicle_emptying
     return current_timestamp + timedelta(seconds=travel_seconds + event_seconds)
 
 """
@@ -168,8 +171,13 @@ def _map_single_tour_events_to_records(
     rng: random.Random,
     bin_visit_records: list[BinVisitRecord],
     vehicle_emptying_records: list[VehicleEmptyingRecord],
+    vehicle_emptying_coords: tuple[float, float],
+    average_speed_meters_per_second: float,
+    road_network_detour_factor: float,
+    seconds_per_bin_visit: int,
+    seconds_per_vehicle_emptying: int,
 ) -> None:
-    current_x, current_y = VEHICLE_EMPTYING_COORDS
+    current_x, current_y = vehicle_emptying_coords
     current_timestamp = tour.started_at.astimezone(timezone.utc)
 
     for event_index, event in enumerate(vehicle_events):
@@ -178,6 +186,10 @@ def _map_single_tour_events_to_records(
             current_y=current_y,
             current_timestamp=current_timestamp,
             event=event,
+            seconds_per_bin_visit=seconds_per_bin_visit,
+            seconds_per_vehicle_emptying=seconds_per_vehicle_emptying,
+            road_network_detour_factor=road_network_detour_factor,
+            average_speed_meters_per_second=average_speed_meters_per_second,
         )
         current_timestamp = event_timestamp
 
@@ -216,6 +228,11 @@ def map_events_to_records_for_vehicle_tours(
     vehicle_tours: list[TourRecord],
     mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
     rng: random.Random,
+    vehicle_emptying_coords: tuple[float, float],
+    average_speed_meters_per_second: float,
+    road_network_detour_factor: float,
+    seconds_per_bin_visit: int,
+    seconds_per_vehicle_emptying: int,
 ) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord]]:
     bin_visit_records: list[BinVisitRecord] = []
     vehicle_emptying_records: list[VehicleEmptyingRecord] = []
@@ -232,6 +249,11 @@ def map_events_to_records_for_vehicle_tours(
             rng=rng,
             bin_visit_records=bin_visit_records,
             vehicle_emptying_records=vehicle_emptying_records,
+            vehicle_emptying_coords=vehicle_emptying_coords,
+            average_speed_meters_per_second=average_speed_meters_per_second,
+            road_network_detour_factor=road_network_detour_factor,
+            seconds_per_bin_visit=seconds_per_bin_visit,
+            seconds_per_vehicle_emptying=seconds_per_vehicle_emptying,
         )
 
     return bin_visit_records, vehicle_emptying_records

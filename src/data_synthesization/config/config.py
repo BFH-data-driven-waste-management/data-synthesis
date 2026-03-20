@@ -9,6 +9,10 @@ from data_synthesization.config.config_model.bin_activity_config import InitialS
     EpisodeDurationConfig, BinActivityConfig
 from data_synthesization.config.config_model.nfc_tag_mapping_config import NfcTagMappingConfig, NfcTagMappingDistributionConfig
 from data_synthesization.config.config_model.simulation_config import SimulationConfig, TourTimingConfig
+from data_synthesization.config.config_model.tour_generation_config import (
+    TourAndNfcMappingConfig,
+    TourItemGenerationConfig,
+)
 from data_synthesization.utils.time import parse_datetime
 
 
@@ -30,6 +34,8 @@ def load_config(path: str | Path) -> AppConfig:
     simulation = raw.get("simulation", {})
     bin_activity = raw.get("bin_activity", {})
     nfc_tag_mapping = raw.get("nfc_tag_mapping", {})
+    tour_item_generation = raw.get("tour_item_generation", {})
+    tour_and_nfc_mapping = raw.get("tour_and_nfc_mapping", {})
 
     database_source_name = os.getenv("DATABASE_URL")
     if not database_source_name:
@@ -80,6 +86,19 @@ def load_config(path: str | Path) -> AppConfig:
                 no_replacement_share=float(nfc_tag_mapping["replacement_distribution"]["no_replacement_share"]),
                 one_replacement_share=float(nfc_tag_mapping["replacement_distribution"]["one_replacement_share"]),
             ),
+        ),
+        tour_item_generation=TourItemGenerationConfig(
+            vehicle_emptying_coords=(
+                float(tour_item_generation["VEHICLE_EMPTYING_COORDS"][0]),
+                float(tour_item_generation["VEHICLE_EMPTYING_COORDS"][1]),
+            ),
+            empty_after_volume=int(tour_item_generation["EMTPY_AFTER_VOLUME"]),
+        ),
+        tour_and_nfc_mapping=TourAndNfcMappingConfig(
+            average_speed_meters_per_second=float(tour_and_nfc_mapping["AVERAGE_SPEED_METERS_PER_SECOND"]),
+            road_network_detour_factor=float(tour_and_nfc_mapping["ROAD_NETWORK_DETOUR_FACTOR"]),
+            seconds_per_bin_visit=int(tour_and_nfc_mapping["SECONDS_PER_BIN_VISIT"]),
+            seconds_per_vehicle_emptying=int(tour_and_nfc_mapping["SECONDS_PER_VEHICLE_EMPTYING"]),
         ),
         database=DatabaseConfig(database_source_name=database_source_name),
     )

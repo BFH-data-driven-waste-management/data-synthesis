@@ -36,3 +36,13 @@ nfc_tag_mapping:
   replacement_distribution:
     no_replacement_share: 0.60
     one_replacement_share: 0.30
+
+tour_item_generation:
+  VEHICLE_EMPTYING_COORDS: [2586282.75, 1218884.52]
+  EMTPY_AFTER_VOLUME: 2000
+
+tour_and_nfc_mapping:
+  AVERAGE_SPEED_METERS_PER_SECOND: 3
+  ROAD_NETWORK_DETOUR_FACTOR: 2
+  SECONDS_PER_BIN_VISIT: 120
+  SECONDS_PER_VEHICLE_EMPTYING: 300

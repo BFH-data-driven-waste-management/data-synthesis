@@ -7,10 +7,6 @@ from pathlib import Path
 from data_synthesization.domain.models import BinRecord
 from data_synthesization.utils.schedule import VehicleSchedule, areas_for_vehicle_day
 
-# TODO: consider fill level here
-VEHICLE_EMPTYING_COORDS = (2586282.75, 1218884.52)
-EMTPY_AFTER_VOLUME = 2000
-
 
 @dataclass(frozen=True)
 class BinVisitEvent:
@@ -80,11 +76,11 @@ def _nearest_bin_order(
 """
 helper for initial state of a vehicle each day
 """
-def _initial_vehicle_day_state() -> _VehicleDayState:
+def _initial_vehicle_day_state(vehicle_emptying_coords: tuple[float, float]) -> _VehicleDayState:
     return _VehicleDayState(
         volume_since_emptying=0,
-        current_x=VEHICLE_EMPTYING_COORDS[0],
-        current_y=VEHICLE_EMPTYING_COORDS[1],
+        current_x=vehicle_emptying_coords[0],
+        current_y=vehicle_emptying_coords[1],
     )
 
 """
@@ -103,12 +99,16 @@ def _build_bin_visit_event(day: date, vehicle_number: int, area: str, _bin: BinR
 """
 helper for building a vehicle_emptying event
 """
-def _build_vehicle_emptying_event(day: date, vehicle_number: int) -> VehicleEmptyingEvent:
+def _build_vehicle_emptying_event(
+    day: date,
+    vehicle_number: int,
+    vehicle_emptying_coords: tuple[float, float],
+) -> VehicleEmptyingEvent:
     return VehicleEmptyingEvent(
         day=day,
         vehicle_number=vehicle_number,
-        coord_x=VEHICLE_EMPTYING_COORDS[0],
-        coord_y=VEHICLE_EMPTYING_COORDS[1],
+        coord_x=vehicle_emptying_coords[0],
+        coord_y=vehicle_emptying_coords[1],
     )
 
 """
@@ -142,10 +142,17 @@ def _append_emptying_and_reset_state(
     vehicle_number: int,
     events: list[BinVisitEvent | VehicleEmptyingEvent],
     state: _VehicleDayState,
+    vehicle_emptying_coords: tuple[float, float],
 ) -> None:
-    events.append(_build_vehicle_emptying_event(day=day, vehicle_number=vehicle_number))
+    events.append(
+        _build_vehicle_emptying_event(
+            day=day,
+            vehicle_number=vehicle_number,
+            vehicle_emptying_coords=vehicle_emptying_coords,
+        )
+    )
     state.volume_since_emptying = 0
-    state.current_x, state.current_y = VEHICLE_EMPTYING_COORDS
+    state.current_x, state.current_y = vehicle_emptying_coords
 
 
 """
@@ -160,6 +167,8 @@ def _append_area_events(
     visits: list[BinVisitEvent],
     events: list[BinVisitEvent | VehicleEmptyingEvent],
     state: _VehicleDayState,
+    vehicle_emptying_coords: tuple[float, float],
+    empty_after_volume: int,
 ) -> None:
     ordered_bins = _nearest_bin_order(
         bins_by_area.get(area, []),
@@ -180,12 +189,13 @@ def _append_area_events(
             state=state,
         )
 
-        if  state.volume_since_emptying >= EMTPY_AFTER_VOLUME:
+        if state.volume_since_emptying >= empty_after_volume:
             _append_emptying_and_reset_state(
                 day=day,
                 vehicle_number=vehicle_number,
                 events=events,
                 state=state,
+                vehicle_emptying_coords=vehicle_emptying_coords,
             )
 
 """
@@ -199,8 +209,10 @@ def _append_vehicle_day_events(
     bins: dict[int, BinRecord],
     visits: list[BinVisitEvent],
     events: list[BinVisitEvent | VehicleEmptyingEvent],
+    vehicle_emptying_coords: tuple[float, float],
+    empty_after_volume: int,
 ) -> None:
-    state = _initial_vehicle_day_state()
+    state = _initial_vehicle_day_state(vehicle_emptying_coords)
 
     for area in areas:
         _append_area_events(
@@ -212,6 +224,8 @@ def _append_vehicle_day_events(
             visits=visits,
             events=events,
             state=state,
+            vehicle_emptying_coords=vehicle_emptying_coords,
+            empty_after_volume=empty_after_volume,
         )
 
     _append_emptying_and_reset_state(
@@ -219,6 +233,7 @@ def _append_vehicle_day_events(
         vehicle_number=vehicle_schedule.vehicle_number,
         events=events,
         state=state,
+        vehicle_emptying_coords=vehicle_emptying_coords,
     )
 
 """
@@ -239,6 +254,8 @@ def generate_day_tour_items(
     seasons: dict[str, tuple[tuple[int, int], tuple[int, int]]],
     bins_by_area: dict[str, list[int]],
     bins: dict[int, BinRecord],
+    vehicle_emptying_coords: tuple[float, float],
+    empty_after_volume: int,
 ) -> list[BinVisitEvent | VehicleEmptyingEvent]:
     visits: list[BinVisitEvent] = []
     events: list[BinVisitEvent | VehicleEmptyingEvent] = []
@@ -253,6 +270,8 @@ def generate_day_tour_items(
             bins=bins,
             visits=visits,
             events=events,
+            vehicle_emptying_coords=vehicle_emptying_coords,
+            empty_after_volume=empty_after_volume,
         )
 
     return events
