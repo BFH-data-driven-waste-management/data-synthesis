@@ -132,6 +132,7 @@ def generate_nfc_tag_mapping_history(
 
             records.append(
                 NfcTagMappingRecord(
+                    id=None,
                     uid=_build_uid(bin_record.id, sequence_index),
                     bin_id=bin_record.id,
                     mapped_at=mapped_at,

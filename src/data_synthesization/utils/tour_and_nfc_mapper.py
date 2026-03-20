@@ -121,12 +121,6 @@ def _append_bin_visit_record_if_possible(
             nfc_tag_mapping_id=nfc_tag_mapping_id,
         )
     )
-    print(
-        f"bin_visit day={event.day.isoformat()} vehicle={event.vehicle_number} "
-        f"tour_id={tour.id} timestamp={event_timestamp.isoformat()} "
-        f"area={event.area} bin_id={event.bin_id} "
-        f"coord_x={event.coord_x:.2f} coord_y={event.coord_y:.2f}"
-    )
 
 """
 create actually database record under consideration of the correct tour (this vehicle, this day) and sync-attributes.
@@ -151,11 +145,6 @@ def _append_vehicle_emptying_record_if_logged(
             connectivity_state="ONLINE",
             tour_id=tour.id,
         )
-    )
-    print(
-        f"vehicle_emptying day={event.day.isoformat()} vehicle={event.vehicle_number} "
-        f"tour_id={tour.id} timestamp={event_timestamp.isoformat()} "
-        f"coord_x={event.coord_x:.2f} coord_y={event.coord_y:.2f}"
     )
 
 """

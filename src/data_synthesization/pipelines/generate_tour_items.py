@@ -229,11 +229,9 @@ def run_generate_tour_items(config_path: str) -> None:
             bin_visit_records.extend(day_bin_visits)
             vehicle_emptying_records.extend(day_vehicle_emptyings)
             last_vehicle_emptying_per_tour.extend([(tour_id, last_emptying) for tour_id, last_emptying in last_vehicle_emptying_per_tour_per_day.items()])
-            break
 
         insert_bin_visits(connection, bin_visit_records)
         insert_vehicle_emptyings(connection, vehicle_emptying_records)
-        print(f"TOUR UPDATES {last_vehicle_emptying_per_tour}")
 
         # close tours after ca. 10 seconds of last vehicle emptying)
         tours_closed_after_last_vehicle_emptying = [
