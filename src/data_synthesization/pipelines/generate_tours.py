@@ -5,6 +5,7 @@ from data_synthesization.shared.db.connection import connect
 from data_synthesization.shared.db.reader import read_vehicles
 from data_synthesization.shared.db.writer import insert_tours
 from data_synthesization.generation.tour_generator import generate_tours
+from data_synthesization.shared.logging import log_tour_stats
 from data_synthesization.validation.tour_checks import validate_tours
 
 
@@ -29,5 +30,4 @@ def run_generate_tours(config_path: str) -> None:
         insert_tours(connection, result.records)
         connection.commit()
 
-    print(f"Generated tour rows: {result.stats.generated_rows}")
-    print(f"Generation days: {result.stats.generated_days}")
+    log_tour_stats(result.stats)
