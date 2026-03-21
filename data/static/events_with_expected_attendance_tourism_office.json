@@ -1,0 +1,182 @@
+[
+  {
+    "EventKey": "lakelive",
+    "Name": "Lakelive Festival",
+    "Periods": [
+      {
+        "Year": 2025,
+        "Start": "2025-07-31",
+        "End": "2025-08-09",
+        "ExpectedPeoplePerDay": 9000
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-07-30",
+        "End": "2026-08-08",
+        "ExpectedPeoplePerDay": "9000"
+      }
+    ],
+    "AffectedNeighbourhoods": ["robertwalser", "seequartiere"]
+  },
+  {
+    "EventKey": "firstfriday",
+    "Name": "First Friday",
+    "Periods": [
+      {
+        "Year": 2025,
+        "Start": "2025-01-01",
+        "End": "2025-12-31",
+        "Rule": "first Friday of every month",
+        "ExpectedPeoplePerDay": 4583
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-01-01",
+        "End": "2026-12-31",
+        "Rule": "first Friday of every month",
+        "ExpectedPeoplePerDay": "5000"
+      }
+    ],
+    "AffectedNeighbourhoods": ["altstadt"]
+  },
+  {
+    "EventKey": "paradice",
+    "Name": "Paradice",
+    "Periods": [
+      {
+        "Year": "2025_2026",
+        "Start": "2025-11-21",
+        "End": "2026-02-01",
+        "ExpectedPeoplePerDay": 1100
+      }
+    ],
+    "AffectedNeighbourhoods": ["innenstadtost"]
+  },
+  {
+    "EventKey": "bieler_fototage",
+    "Name": "Biel Photo Days",
+    "Periods": [
+      {
+        "Year": 2025,
+        "Start": "2025-05-03",
+        "End": "2025-05-25",
+        "ExpectedPeoplePerDay": 652
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-05-08",
+        "End": "2026-05-31",
+        "ExpectedPeoplePerDay": "700"
+      }
+    ],
+    "AffectedNeighbourhoods": ["innenstadtWest"]
+  },
+  {
+    "EventKey": "fete_federale_de_musique_2026",
+    "Name": "Federal Music Festival 2026",
+    "Periods": [
+      {
+        "Year": 2026,
+        "Start": "2026-05-14",
+        "End": "2026-05-17",
+        "ExpectedPeoplePerDay": "20000"
+      }
+    ],
+    "AffectedNeighbourhoods": ["innenstadt", "innenstadtWest", "innenstadtost", "innenstadtNord"]
+  },
+  {
+    "EventKey": "zwiebel_und_obstmarkt",
+    "Name": "Onion and Fruit Market",
+    "Periods": [
+      {
+        "Year": 2025,
+        "Start": "2025-10-25",
+        "End": "2025-10-25",
+        "ExpectedPeoplePerDay": "8000"
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-10-31",
+        "End": "2026-10-31",
+        "ExpectedPeoplePerDay": "8000"
+      }
+    ],
+    "AffectedNeighbourhoods": ["altstadt"]
+  },
+  {
+    "EventKey": "braderie",
+    "Name": "Braderie",
+    "Periods": [
+      {
+        "Year": 2025,
+        "Start": "2025-06-27",
+        "End": "2025-06-29",
+        "ExpectedPeoplePerDay": "15000"
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-06-26",
+        "End": "2026-06-28",
+        "ExpectedPeoplePerDay": "15000"
+      }
+    ],
+    "AffectedNeighbourhoods": ["Innenstadt", "innenstadtWest", "innenstadtost", "innenstadtNord", "altstadt"]
+  },
+  {
+    "EventKey": "fasnacht",
+    "Name": "Carnival",
+    "Periods": [
+      {
+        "Year": 2025,
+        "Start": "2025-03-06",
+        "End": "2025-03-09",
+        "ExpectedPeoplePerDay": "10000"
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-02-19",
+        "End": "2026-02-22",
+        "ExpectedPeoplePerDay": "10000"
+      }
+    ],
+    "AffectedNeighbourhoods": ["Innenstadt", "innenstadtWest", "innenstadtost", "innenstadtNord", "altstadt"]
+  },
+  {
+    "EventKey": "plusqile_festival",
+    "Name": "plusQ’île Festival",
+    "Periods": [
+      {
+        "Year": 2025,
+        "Start": "2025-06-11",
+        "End": "2025-06-15",
+        "ExpectedPeoplePerDay": "3000"
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-06-12",
+        "End": "2026-06-21",
+        "ExpectedPeoplePerDay": "3000"
+      }
+    ],
+    "AffectedNeighbourhoods": ["seequartiere"]
+  },
+  {
+    "EventKey": "weihnachtsmarkt",
+    "Name": "Christmas Market",
+    "Periods": [
+      {
+        "Year": 2025,
+        "Start": "2025-12-04",
+        "End": "2025-12-24",
+        "ExpectedPeoplePerDay": "1500"
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-12-03",
+        "End": "2026-12-24",
+        "ExpectedPeoplePerDay": "1500"
+      }
+    ],
+    "AffectedNeighbourhoods": ["innenstadt"]
+  }
+]
