@@ -4,6 +4,7 @@ import random
 from pathlib import Path
 
 from data_synthesization.config.config_model.latent_filllevel_config import LatentFillLevelConfig
+from data_synthesization.domain.enums import FillLevel, VisitAction
 from data_synthesization.domain.models import BinRecord
 from data_synthesization.generation.event_effects import (
     build_active_event_index,
@@ -17,8 +18,8 @@ from data_synthesization.utils.weather import DailyWeatherContext
 
 @dataclass(frozen=True)
 class FillObservation:
-    fill_level: str
-    action: str
+    fill_level: FillLevel
+    action: VisitAction
 
 
 @dataclass
@@ -64,7 +65,7 @@ class LatentFillLevelSimulator:
 
         emptied_probability = self._config.action_probabilities[fill_level_key].emptied
         emptied = self._rng.random() < emptied_probability
-        action = "EMPTIED" if emptied else "NOT_EMPTIED"
+        action = VisitAction.EMPTIED if emptied else VisitAction.NOT_EMPTIED
 
         if emptied:
             state.latent_fill_volume = 0.0
@@ -202,11 +203,11 @@ class LatentFillLevelSimulator:
         return "over_full"
 
     @staticmethod
-    def _to_observed_fill_level(fill_level_key: str) -> str:
+    def _to_observed_fill_level(fill_level_key: str) -> FillLevel:
         mapping = {
-            "empty_or_almost_empty": "EMPTY_OR_ALMOST_EMPTY",
-            "half_full": "HALF_FULL",
-            "full": "FULL",
-            "over_full": "OVERFULL"
+            "empty_or_almost_empty": FillLevel.EMPTY_OR_ALMOST_EMPTY,
+            "half_full": FillLevel.HALF_FULL,
+            "full": FillLevel.FULL,
+            "over_full": FillLevel.OVERFULL,
         }
         return mapping[fill_level_key]

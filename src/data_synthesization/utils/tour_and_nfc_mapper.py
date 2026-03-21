@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from math import hypot
 from uuid import uuid4
 
+from data_synthesization.domain.enums import ConnectivityState
 from data_synthesization.domain.models import BinVisitRecord, NfcTagMappingRecord, TourRecord, VehicleEmptyingRecord
 from data_synthesization.generation.latent_filllevel_simulator import LatentFillLevelSimulator
 from data_synthesization.generation.tour_item_generator import BinVisitEvent, VehicleEmptyingEvent
@@ -122,7 +123,7 @@ def _append_bin_visit_record_if_possible(
             client_event_id=str(uuid4()),
             event_timestamp=event_timestamp,
             received_timestamp=event_timestamp + timedelta(seconds=1),
-            connectivity_state="ONLINE",
+            connectivity_state=ConnectivityState.ONLINE,
             fill_level=observation.fill_level,
             action=observation.action,
             tour_id=tour.id,
@@ -150,7 +151,7 @@ def _append_vehicle_emptying_record_if_logged(
             client_event_id=str(uuid4()),
             event_timestamp=event_timestamp,
             received_timestamp=event_timestamp + timedelta(seconds=1),
-            connectivity_state="ONLINE",
+            connectivity_state=ConnectivityState.ONLINE,
             tour_id=tour.id,
         )
     )

@@ -79,9 +79,9 @@ def insert_bin_visits(conn: Connection, records: Sequence[BinVisitRecord]) -> No
             record.client_event_id,
             record.event_timestamp,
             record.received_timestamp,
-            record.connectivity_state,
-            record.fill_level,
-            record.action,
+            record.connectivity_state.value,
+            record.fill_level.value,
+            record.action.value,
             record.tour_id,
             record.nfc_tag_mapping_id,
         )
@@ -111,7 +111,7 @@ def insert_vehicle_emptyings(conn: Connection, records: Sequence[VehicleEmptying
             record.event_timestamp,
             record.received_timestamp,
             record.client_event_id,
-            record.connectivity_state,
+            record.connectivity_state.value,
             record.tour_id,
         )
         for record in records

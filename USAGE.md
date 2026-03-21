@@ -13,7 +13,8 @@
 ## Python setup
 1. Create and activate a virtual environment:
    ```bash
-   python3.10 -m venv .venv
+   apt install python3.11-venv
+   python3.11 -m venv .venv
    source .venv/bin/activate
    ```
 2. Install dependencies centrally from `requirements.txt`:
