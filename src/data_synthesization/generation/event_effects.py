@@ -1,10 +1,8 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
 import json
-from collections.abc import Callable
+from random import Random
 
 from data_synthesization.config.config_model.latent_filllevel_config import EventEffectsConfig
 
@@ -112,17 +110,18 @@ def get_active_events_for_area_and_date(
 ) -> list[ActiveEventForDay]:
     return index.get(current_day, {}).get(area, [])
 
-
-def compute_event_increment_liters(
-    volume_liters: int,
+"""
+Calculate the combined multiplier for the given active events.
+"""
+def compute_event_multiplier(
     active_events: list[ActiveEventForDay],
     config: EventEffectsConfig,
-    rng_value_provider: Callable[[float, float], float],
+    rng: Random,
 ) -> float:
     if not config.enabled or not active_events:
-        return 0.0
+        return 1.0
 
-    total_increment = 0.0
+    combined_multiplier = 1.0
 
     for event in active_events:
         people_factor = 0.0
@@ -131,8 +130,8 @@ def compute_event_increment_liters(
                 people_factor = bucket.factor
                 break
 
-        random_factor = rng_value_provider(config.random_multiplier_min, config.random_multiplier_max)
-        increment = volume_liters * people_factor * config.area_weight_default * random_factor
-        total_increment += increment
+        random_factor = rng.uniform(config.random_multiplier_min, config.random_multiplier_max)
+        event_multiplier = 1.0 + (people_factor * config.area_weight_default * random_factor)
+        combined_multiplier *= event_multiplier
 
-    return total_increment
+    return combined_multiplier

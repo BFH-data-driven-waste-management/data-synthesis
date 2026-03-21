@@ -7,7 +7,7 @@ from data_synthesization.config.config_model.latent_filllevel_config import Late
 from data_synthesization.domain.models import BinRecord
 from data_synthesization.generation.event_effects import (
     build_active_event_index,
-    compute_event_increment_liters,
+    compute_event_multiplier,
     get_active_events_for_area_and_date,
     load_events,
 )
@@ -126,13 +126,12 @@ class LatentFillLevelSimulator:
             area=area,
             current_day=current_day,
         )
-        event_increment = compute_event_increment_liters(
-            volume_liters=volume,
+        event_multiplier = compute_event_multiplier(
             active_events=active_events,
             config=self._config.event_effects,
-            rng_value_provider=self._rng.uniform,
+            rng=self._rng,
         )
-        return base_increment + event_increment
+        return base_increment * event_multiplier
 
     def _base_rate_for_day(self, area: str, weekday_name: str) -> float:
         area_overrides = self._config.zone_base_fill_rate_ratio_per_day_weekday_overrides.get(area, {})
