@@ -27,3 +27,4 @@ class LatentFillLevelConfig:
     weekday_factors: dict[str, float]
     random_daily_multiplier: RatioRangeConfig
     zone_base_fill_rate_ratio_per_day: dict[str, float]
+    zone_base_fill_rate_ratio_per_day_weekday_overrides: dict[str, dict[str, float]]

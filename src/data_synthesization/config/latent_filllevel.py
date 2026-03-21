@@ -22,6 +22,7 @@ def load_latent_filllevel_config(
     config = raw.get("latent_filllevel", {})
 
     configured_rates = dict(config["zone_base_fill_rate_ratio_per_day"])
+    configured_weekday_overrides = dict(config.get("zone_base_fill_rate_ratio_per_day_weekday_overrides", {}))
 
     thresholds_raw = config["thresholds"]
     random_raw = config["random_daily_multiplier"]
@@ -45,5 +46,9 @@ def load_latent_filllevel_config(
         zone_base_fill_rate_ratio_per_day={
             key: float(value)
             for key, value in configured_rates.items()
+        },
+        zone_base_fill_rate_ratio_per_day_weekday_overrides={
+            area: {day: float(value) for day, value in weekday_overrides.items()}
+            for area, weekday_overrides in configured_weekday_overrides.items()
         },
     )

@@ -95,10 +95,9 @@ class LatentFillLevelSimulator:
     central logic for calculating the daily increment of the latent fill level.
     """
     def _daily_increment(self, volume: int, area: str, current_day: date) -> float:
-        base_rate = self._config.zone_base_fill_rate_ratio_per_day.get(area)
-        seasonal_factor = self._config.seasonal_factors.get(self._season_for_day(current_day), 1)
-
         weekday_name = current_day.strftime("%A").lower()
+        base_rate = self._base_rate_for_day(area, weekday_name)
+        seasonal_factor = self._config.seasonal_factors.get(self._season_for_day(current_day), 1)
         weekday_factor = self._config.weekday_factors.get(weekday_name, 1.0)
 
         random_multiplier = self._rng.uniform(
@@ -106,6 +105,15 @@ class LatentFillLevelSimulator:
             self._config.random_daily_multiplier.max,
         )
         return volume * base_rate * seasonal_factor * weekday_factor * random_multiplier
+
+    def _base_rate_for_day(self, area: str, weekday_name: str) -> float:
+        area_overrides = self._config.zone_base_fill_rate_ratio_per_day_weekday_overrides.get(area, {})
+        if weekday_name in area_overrides:
+            return area_overrides[weekday_name]
+        return self._config.zone_base_fill_rate_ratio_per_day.get(
+            area,
+            self._config.zone_base_fill_rate_ratio_per_day["default"],
+        )
 
     def _season_for_day(self, current_day: date) -> str:
         month_day = (current_day.month, current_day.day)

@@ -53,3 +53,14 @@ latent_filllevel:
     boezingenfeld: 0.10
     ipsach: 0.16
     default: 0.12
+
+  zone_base_fill_rate_ratio_per_day_weekday_overrides:
+    sportAnlagen:
+      saturday: 0.30
+      sunday: 0.30
+    seequartiere:
+      monday: 0.25
+      tuesday: 0.25
+      wednesday: 0.25
+      thursday: 0.25
+      friday: 0.25
