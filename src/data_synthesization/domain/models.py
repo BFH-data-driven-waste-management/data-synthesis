@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+from data_synthesization.domain.enums import ConnectivityState, FillLevel, VisitAction
+
 
 @dataclass(frozen=True)
 class BinRecord:
@@ -39,9 +41,9 @@ class BinVisitRecord:
     client_event_id: str
     event_timestamp: datetime
     received_timestamp: datetime
-    connectivity_state: str
-    fill_level: str
-    action: str
+    connectivity_state: ConnectivityState
+    fill_level: FillLevel
+    action: VisitAction
     tour_id: int
     nfc_tag_mapping_id: int | None
 
@@ -51,5 +53,5 @@ class VehicleEmptyingRecord:
     client_event_id: str
     event_timestamp: datetime
     received_timestamp: datetime
-    connectivity_state: str
+    connectivity_state: ConnectivityState
     tour_id: int
