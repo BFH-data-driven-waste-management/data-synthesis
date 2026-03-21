@@ -4,10 +4,12 @@ from datetime import date, datetime, time, timezone, timedelta
 from pathlib import Path
 
 from data_synthesization.config.config import load_config
+from data_synthesization.config.latent_filllevel import load_latent_filllevel_config
 from data_synthesization.db.connection import connect
 from data_synthesization.db.reader import read_bin_activities, read_bins, read_nfc_tag_mappings, read_tours
 from data_synthesization.db.writer import insert_bin_visits, insert_vehicle_emptyings, update_tours_ended_at
 from data_synthesization.domain.models import BinActivityRecord, BinRecord, BinVisitRecord, NfcTagMappingRecord, TourRecord, VehicleEmptyingRecord
+from data_synthesization.generation.latent_filllevel_simulator import LatentFillLevelSimulator
 from data_synthesization.generation.tour_item_generator import (
     BinVisitEvent,
     VehicleEmptyingEvent,
@@ -20,6 +22,7 @@ from data_synthesization.utils.schedule import ServiceSchedule, load_service_sch
 
 SCHEDULE_PATH = Path("config/schedule.yaml")
 BIN_MAPPING_PATH = Path("data/static/bin_neighbourhood_mapping.csv")
+LATENT_FILLLEVEL_PATH = Path("config/latent_filllevel.yaml")
 
 
 def _group_tours_by_vehicle_and_day(
@@ -149,6 +152,7 @@ def _generate_records_for_day(
     road_network_detour_factor: float,
     seconds_per_bin_visit: int,
     seconds_per_vehicle_emptying: int,
+    latent_filllevel_simulator: LatentFillLevelSimulator,
 ) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
     day_bin_visits: list[BinVisitRecord] = []
     day_vehicle_emptyings: list[VehicleEmptyingRecord] = []
@@ -169,6 +173,7 @@ def _generate_records_for_day(
             road_network_detour_factor=road_network_detour_factor,
             seconds_per_bin_visit=seconds_per_bin_visit,
             seconds_per_vehicle_emptying=seconds_per_vehicle_emptying,
+            latent_filllevel_simulator=latent_filllevel_simulator,
         )
         day_bin_visits.extend(bin_visits)
         day_vehicle_emptyings.extend(vehicle_emptyings)
@@ -181,6 +186,9 @@ def _generate_records_for_day(
 def run_generate_tour_items(config_path: str) -> None:
     config = load_config(config_path)
     service_schedule = load_service_schedule(SCHEDULE_PATH)
+    latent_filllevel_config = load_latent_filllevel_config(
+        path=LATENT_FILLLEVEL_PATH,
+    )
     bins_by_area_config = load_bins_by_area(BIN_MAPPING_PATH)
     rng = random.Random(config.simulation.seed)
 
@@ -196,6 +204,12 @@ def run_generate_tour_items(config_path: str) -> None:
         nfc_mappings_by_bin = _group_nfc_mappings_by_bin(nfc_tag_mappings)
         activities_by_bin = _build_activities_by_bin(bin_activities)
         bins_by_id = {_bin.id: _bin for _bin in bins}
+        latent_filllevel_simulator = LatentFillLevelSimulator(
+            config=latent_filllevel_config,
+            bins_by_id=bins_by_id,
+            seasons=service_schedule.seasons,
+            rng=rng,
+        )
 
         bin_visit_records: list[BinVisitRecord] = []
         vehicle_emptying_records: list[VehicleEmptyingRecord] = []
@@ -225,6 +239,7 @@ def run_generate_tour_items(config_path: str) -> None:
                 road_network_detour_factor=config.tour_and_nfc_mapping.road_network_detour_factor,
                 seconds_per_bin_visit=config.tour_and_nfc_mapping.seconds_per_bin_visit,
                 seconds_per_vehicle_emptying=config.tour_and_nfc_mapping.seconds_per_vehicle_emptying,
+                latent_filllevel_simulator=latent_filllevel_simulator,
             )
             bin_visit_records.extend(day_bin_visits)
             vehicle_emptying_records.extend(day_vehicle_emptyings)

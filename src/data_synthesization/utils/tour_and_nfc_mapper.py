@@ -4,6 +4,7 @@ from math import hypot
 from uuid import uuid4
 
 from data_synthesization.domain.models import BinVisitRecord, NfcTagMappingRecord, TourRecord, VehicleEmptyingRecord
+from data_synthesization.generation.latent_filllevel_simulator import LatentFillLevelSimulator
 from data_synthesization.generation.tour_item_generator import BinVisitEvent, VehicleEmptyingEvent
 
 """
@@ -100,6 +101,7 @@ def _append_bin_visit_record_if_possible(
     tour: TourRecord,
     mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
     bin_visit_records: list[BinVisitRecord],
+    latent_filllevel_simulator: LatentFillLevelSimulator,
 ) -> None:
     nfc_tag_mapping_id = _find_mapping_for_bin_visit_day(
         exact_time=event_timestamp,
@@ -109,14 +111,20 @@ def _append_bin_visit_record_if_possible(
     if nfc_tag_mapping_id is None:
         return
 
+    observation = latent_filllevel_simulator.observe_visit(
+        bin_id=event.bin_id,
+        area=event.area,
+        visit_day=event.day,
+    )
+
     bin_visit_records.append(
         BinVisitRecord(
             client_event_id=str(uuid4()),
             event_timestamp=event_timestamp,
             received_timestamp=event_timestamp + timedelta(seconds=1),
             connectivity_state="ONLINE",
-            fill_level="FULL",
-            action="EMPTIED",
+            fill_level=observation.fill_level,
+            action=observation.action,
             tour_id=tour.id,
             nfc_tag_mapping_id=nfc_tag_mapping_id,
         )
@@ -166,6 +174,7 @@ def _map_single_tour_events_to_records(
     road_network_detour_factor: float,
     seconds_per_bin_visit: int,
     seconds_per_vehicle_emptying: int,
+    latent_filllevel_simulator: LatentFillLevelSimulator,
 ) -> datetime:
     current_x, current_y = vehicle_emptying_coords
     current_timestamp = tour.started_at.astimezone(timezone.utc)
@@ -198,6 +207,7 @@ def _map_single_tour_events_to_records(
                     tour=tour,
                     mappings_by_bin=mappings_by_bin,
                     bin_visit_records=bin_visit_records,
+                    latent_filllevel_simulator=latent_filllevel_simulator,
                 )
         else:
             _append_vehicle_emptying_record_if_logged(
@@ -233,6 +243,7 @@ def map_events_to_records_for_vehicle_tours(
     road_network_detour_factor: float,
     seconds_per_bin_visit: int,
     seconds_per_vehicle_emptying: int,
+    latent_filllevel_simulator: LatentFillLevelSimulator,
 ) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
     bin_visit_records: list[BinVisitRecord] = []
     vehicle_emptying_records: list[VehicleEmptyingRecord] = []
@@ -255,6 +266,7 @@ def map_events_to_records_for_vehicle_tours(
             road_network_detour_factor=road_network_detour_factor,
             seconds_per_bin_visit=seconds_per_bin_visit,
             seconds_per_vehicle_emptying=seconds_per_vehicle_emptying,
+            latent_filllevel_simulator=latent_filllevel_simulator,
         )
         last_vehicle_emptying_per_tour[tour.id] = last_vehicle_emptying_at
 

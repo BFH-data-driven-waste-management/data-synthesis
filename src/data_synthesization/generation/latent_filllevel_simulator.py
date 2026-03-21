@@ -1,0 +1,113 @@
+from dataclasses import dataclass
+from datetime import date, timedelta
+import random
+
+from data_synthesization.config.config_model.latent_filllevel_config import LatentFillLevelConfig
+from data_synthesization.domain.models import BinRecord
+from data_synthesization.utils.schedule import SeasonBounds
+
+
+@dataclass(frozen=True)
+class FillObservation:
+    fill_level: str
+    action: str
+
+
+@dataclass
+class _BinState:
+    latent_fill_volume: float
+    last_updated_day: date
+
+
+class LatentFillLevelSimulator:
+    def __init__(
+        self,
+        config: LatentFillLevelConfig,
+        bins_by_id: dict[int, BinRecord],
+        seasons: dict[str, SeasonBounds],
+        rng: random.Random,
+    ) -> None:
+        self._config = config
+        self._bins_by_id = bins_by_id
+        self._seasons = seasons
+        self._rng = rng
+        self._states: dict[int, _BinState] = {}
+
+    """
+    Simulates the latent fill level of a bin over time.
+    Determines fill level label and action based on the observed fill level.
+    """
+    def observe_visit(self, bin_id: int, area: str, visit_day: date) -> FillObservation:
+        bin_record = self._bins_by_id[bin_id]
+        state = self._states.get(bin_id)
+        if state is None:
+            initial_ratio = self._rng.uniform(0.05, 0.35)
+            state = _BinState(latent_fill_volume=bin_record.volume * initial_ratio, last_updated_day=visit_day)
+            self._states[bin_id] = state
+        else:
+            self._accumulate_between_days(state, bin_record, area, visit_day)
+
+        fill_level_key = self._fill_level_key(state.latent_fill_volume / bin_record.volume)
+        fill_level = self._to_observed_fill_level(fill_level_key)
+
+        emptied_probability = self._config.action_probabilities[fill_level_key].emptied
+        emptied = self._rng.random() < emptied_probability
+        action = "EMPTIED" if emptied else "NOT_EMPTIED"
+
+        if emptied:
+            state.latent_fill_volume = 0.0
+
+        return FillObservation(fill_level=fill_level, action=action)
+
+    """
+    for each day since last update, accumulate the daily increment of the latent fill level.
+    """
+    def _accumulate_between_days(self, state: _BinState, bin_record: BinRecord, area: str, visit_day: date) -> None:
+        day = state.last_updated_day + timedelta(days=1)
+        while day <= visit_day:
+            state.latent_fill_volume += self._daily_increment(bin_record.volume, area, day)
+            state.latent_fill_volume = max(0.0, min(state.latent_fill_volume, float(bin_record.volume)))
+            day += timedelta(days=1)
+        state.last_updated_day = visit_day
+
+    """
+    central logic for calculating the daily increment of the latent fill level.
+    """
+    def _daily_increment(self, volume: int, area: str, current_day: date) -> float:
+        base_rate = self._config.zone_base_fill_rate_ratio_per_day.get(area)
+        seasonal_factor = self._config.seasonal_factors.get(self._season_for_day(current_day), 1)
+
+        weekday_name = current_day.strftime("%A").lower()
+        weekday_factor = self._config.weekday_factors.get(weekday_name, 1.0)
+
+        random_multiplier = self._rng.uniform(
+            self._config.random_daily_multiplier.min,
+            self._config.random_daily_multiplier.max,
+        )
+        return volume * base_rate * seasonal_factor * weekday_factor * random_multiplier
+
+    def _season_for_day(self, current_day: date) -> str:
+        month_day = (current_day.month, current_day.day)
+        for season_name, (start, end) in self._seasons.items():
+            if start <= month_day <= end:
+                return season_name
+        return "default"
+
+    def _fill_level_key(self, ratio: float) -> str:
+        if ratio <= self._config.thresholds.empty_or_almost_empty_max_ratio:
+            return "empty_or_almost_empty"
+        if ratio <= self._config.thresholds.half_full_max_ratio:
+            return "half_full"
+        if ratio <= self._config.thresholds.full_max_ratio:
+            return "full"
+        return "over_full"
+
+    @staticmethod
+    def _to_observed_fill_level(fill_level_key: str) -> str:
+        mapping = {
+            "empty_or_almost_empty": "EMPTY_OR_ALMOST_EMPTY",
+            "half_full": "HALF_FULL",
+            "full": "FULL",
+            "over_full": "OVERFULL"
+        }
+        return mapping[fill_level_key]

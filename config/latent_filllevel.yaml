@@ -1,0 +1,55 @@
+latent_filllevel:
+  thresholds:
+    empty_or_almost_empty_max_ratio: 0.25
+    half_full_max_ratio: 0.75
+    full_max_ratio: 1.00
+
+  action_probabilities:
+    empty_or_almost_empty:
+      emptied: 0.00
+    half_full:
+      emptied: 0.5
+    full:
+      emptied: 1
+    over_full:
+      emptied: 1
+
+  seasonal_factors:
+    summer: 1.25
+
+  weekday_factors:
+    monday: 0.9
+    tuesday: 0.95
+    wednesday: 1.00
+    thursday: 1.00
+    friday: 1.10
+    saturday: 1.25
+    sunday: 1.25
+
+  random_daily_multiplier:
+    min: 0.85
+    max: 1.15
+
+  zone_base_fill_rate_ratio_per_day:
+    robertwalser: 0.30
+    innenstadt: 0.30
+    innenstadtWest: 0.24
+    innenstadtost: 0.24
+    innenstadtNord: 0.22
+    altstadt: 0.24
+    seequartiere: 0.20
+    moesli: 0.12
+    madretsch: 0.14
+    linde: 0.12
+    muehlefeld: 0.10
+    vingelz: 0.10
+    beaumont: 0.12
+    gurzelen: 0.12
+    mettSud: 0.12
+    mettNord: 0.10
+    boezingen: 0.12
+    boezingenNord: 0.10
+    sportAnlagen: 0.16
+    boezingenfeld: 0.10
+    ipsach: 0.16
+    default: 0.12
