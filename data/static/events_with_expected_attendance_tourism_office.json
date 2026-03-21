@@ -13,7 +13,7 @@
         "Year": 2026,
         "Start": "2026-07-30",
         "End": "2026-08-08",
-        "ExpectedPeoplePerDay": "9000"
+        "ExpectedPeoplePerDay": 9000
       }
     ],
     "AffectedNeighbourhoods": ["robertwalser", "seequartiere"]
@@ -24,17 +24,147 @@
     "Periods": [
       {
         "Year": 2025,
-        "Start": "2025-01-01",
-        "End": "2025-12-31",
-        "Rule": "first Friday of every month",
+        "Start": "2025-01-03",
+        "End": "2025-01-03",
+        "ExpectedPeoplePerDay": 4583
+      },
+      {
+        "Year": 2025,
+        "Start": "2025-02-07",
+        "End": "2025-02-07",
+        "ExpectedPeoplePerDay": 4583
+      },
+      {
+        "Year": 2025,
+        "Start": "2025-03-07",
+        "End": "2025-03-07",
+        "ExpectedPeoplePerDay": 4583
+      },
+      {
+        "Year": 2025,
+        "Start": "2025-04-04",
+        "End": "2025-04-04",
+        "ExpectedPeoplePerDay": 4583
+      },
+      {
+        "Year": 2025,
+        "Start": "2025-05-02",
+        "End": "2025-05-02",
+        "ExpectedPeoplePerDay": 4583
+      },
+      {
+        "Year": 2025,
+        "Start": "2025-06-06",
+        "End": "2025-06-06",
+        "ExpectedPeoplePerDay": 4583
+      },
+      {
+        "Year": 2025,
+        "Start": "2025-07-04",
+        "End": "2025-07-04",
+        "ExpectedPeoplePerDay": 4583
+      },
+      {
+        "Year": 2025,
+        "Start": "2025-08-01",
+        "End": "2025-08-01",
+        "ExpectedPeoplePerDay": 4583
+      },
+      {
+        "Year": 2025,
+        "Start": "2025-09-05",
+        "End": "2025-09-05",
+        "ExpectedPeoplePerDay": 4583
+      },
+      {
+        "Year": 2025,
+        "Start": "2025-10-03",
+        "End": "2025-10-03",
+        "ExpectedPeoplePerDay": 4583
+      },
+      {
+        "Year": 2025,
+        "Start": "2025-11-07",
+        "End": "2025-11-07",
+        "ExpectedPeoplePerDay": 4583
+      },
+      {
+        "Year": 2025,
+        "Start": "2025-12-05",
+        "End": "2025-12-05",
         "ExpectedPeoplePerDay": 4583
       },
       {
         "Year": 2026,
-        "Start": "2026-01-01",
-        "End": "2026-12-31",
-        "Rule": "first Friday of every month",
-        "ExpectedPeoplePerDay": "5000"
+        "Start": "2026-01-02",
+        "End": "2026-01-02",
+        "ExpectedPeoplePerDay": 5000
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-02-06",
+        "End": "2026-02-06",
+        "ExpectedPeoplePerDay": 5000
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-03-06",
+        "End": "2026-03-06",
+        "ExpectedPeoplePerDay": 5000
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-04-03",
+        "End": "2026-04-03",
+        "ExpectedPeoplePerDay": 5000
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-05-01",
+        "End": "2026-05-01",
+        "ExpectedPeoplePerDay": 5000
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-06-05",
+        "End": "2026-06-05",
+        "ExpectedPeoplePerDay": 5000
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-07-03",
+        "End": "2026-07-03",
+        "ExpectedPeoplePerDay": 5000
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-08-07",
+        "End": "2026-08-07",
+        "ExpectedPeoplePerDay": 5000
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-09-04",
+        "End": "2026-09-04",
+        "ExpectedPeoplePerDay": 5000
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-10-02",
+        "End": "2026-10-02",
+        "ExpectedPeoplePerDay": 5000
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-11-06",
+        "End": "2026-11-06",
+        "ExpectedPeoplePerDay": 5000
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-12-04",
+        "End": "2026-12-04",
+        "ExpectedPeoplePerDay": 5000
       }
     ],
     "AffectedNeighbourhoods": ["altstadt"]
@@ -44,8 +174,14 @@
     "Name": "Paradice",
     "Periods": [
       {
-        "Year": "2025_2026",
+        "Year": 2025,
         "Start": "2025-11-21",
+        "End": "2025-12-31",
+        "ExpectedPeoplePerDay": 1100
+      },
+      {
+        "Year": 2026,
+        "Start": "2026-01-01",
         "End": "2026-02-01",
         "ExpectedPeoplePerDay": 1100
       }
@@ -66,7 +202,7 @@
         "Year": 2026,
         "Start": "2026-05-08",
         "End": "2026-05-31",
-        "ExpectedPeoplePerDay": "700"
+        "ExpectedPeoplePerDay": 700
       }
     ],
     "AffectedNeighbourhoods": ["innenstadtWest"]
@@ -79,7 +215,7 @@
         "Year": 2026,
         "Start": "2026-05-14",
         "End": "2026-05-17",
-        "ExpectedPeoplePerDay": "20000"
+        "ExpectedPeoplePerDay": 20000
       }
     ],
     "AffectedNeighbourhoods": ["innenstadt", "innenstadtWest", "innenstadtost", "innenstadtNord"]
@@ -92,13 +228,13 @@
         "Year": 2025,
         "Start": "2025-10-25",
         "End": "2025-10-25",
-        "ExpectedPeoplePerDay": "8000"
+        "ExpectedPeoplePerDay": 8000
       },
       {
         "Year": 2026,
         "Start": "2026-10-31",
         "End": "2026-10-31",
-        "ExpectedPeoplePerDay": "8000"
+        "ExpectedPeoplePerDay": 8000
       }
     ],
     "AffectedNeighbourhoods": ["altstadt"]
@@ -111,13 +247,13 @@
         "Year": 2025,
         "Start": "2025-06-27",
         "End": "2025-06-29",
-        "ExpectedPeoplePerDay": "15000"
+        "ExpectedPeoplePerDay": 15000
       },
       {
         "Year": 2026,
         "Start": "2026-06-26",
         "End": "2026-06-28",
-        "ExpectedPeoplePerDay": "15000"
+        "ExpectedPeoplePerDay": 15000
       }
     ],
     "AffectedNeighbourhoods": ["Innenstadt", "innenstadtWest", "innenstadtost", "innenstadtNord", "altstadt"]
@@ -130,13 +266,13 @@
         "Year": 2025,
         "Start": "2025-03-06",
         "End": "2025-03-09",
-        "ExpectedPeoplePerDay": "10000"
+        "ExpectedPeoplePerDay": 10000
       },
       {
         "Year": 2026,
         "Start": "2026-02-19",
         "End": "2026-02-22",
-        "ExpectedPeoplePerDay": "10000"
+        "ExpectedPeoplePerDay": 10000
       }
     ],
     "AffectedNeighbourhoods": ["Innenstadt", "innenstadtWest", "innenstadtost", "innenstadtNord", "altstadt"]
@@ -149,13 +285,13 @@
         "Year": 2025,
         "Start": "2025-06-11",
         "End": "2025-06-15",
-        "ExpectedPeoplePerDay": "3000"
+        "ExpectedPeoplePerDay": 3000
       },
       {
         "Year": 2026,
         "Start": "2026-06-12",
         "End": "2026-06-21",
-        "ExpectedPeoplePerDay": "3000"
+        "ExpectedPeoplePerDay": 3000
       }
     ],
     "AffectedNeighbourhoods": ["seequartiere"]
@@ -168,13 +304,13 @@
         "Year": 2025,
         "Start": "2025-12-04",
         "End": "2025-12-24",
-        "ExpectedPeoplePerDay": "1500"
+        "ExpectedPeoplePerDay": 1500
       },
       {
         "Year": 2026,
         "Start": "2026-12-03",
         "End": "2026-12-24",
-        "ExpectedPeoplePerDay": "1500"
+        "ExpectedPeoplePerDay": 1500
       }
     ],
     "AffectedNeighbourhoods": ["innenstadt"]
