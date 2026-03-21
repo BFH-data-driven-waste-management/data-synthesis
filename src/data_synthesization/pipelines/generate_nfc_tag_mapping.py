@@ -2,7 +2,8 @@ from data_synthesization.shared.config.config import load_config
 from data_synthesization.shared.db.connection import connect
 from data_synthesization.shared.db.reader import read_bin_activities, read_bins
 from data_synthesization.shared.db.writer import insert_nfc_tag_mappings
-from data_synthesization.generation.nfc_tag_mapping_generator import generate_nfc_tag_mapping_history
+from data_synthesization.feature.nfc_tag_mappinggenerator.generator import generate_nfc_tag_mapping_history
+from data_synthesization.shared.logging import log_nfc_tag_mapping_stats
 from data_synthesization.validation.nfc_tag_mapping_checks import validate_nfc_tag_mapping
 
 
@@ -24,8 +25,4 @@ def run_generate_nfc_tag_mapping(config_path: str) -> None:
         insert_nfc_tag_mappings(connection, result.records)
         connection.commit()
 
-    print(f"Loaded bins: {result.stats.total_bins}")
-    print(f"Generated nfc_tag_mapping rows: {result.stats.generated_rows}")
-    print(f"Bins with 0 replacements: {result.stats.bins_with_0_replacements}")
-    print(f"Bins with 1 replacement: {result.stats.bins_with_1_replacement}")
-    print(f"Bins with 2 replacements: {result.stats.bins_with_2_replacements}")
+    log_nfc_tag_mapping_stats(result.stats)
