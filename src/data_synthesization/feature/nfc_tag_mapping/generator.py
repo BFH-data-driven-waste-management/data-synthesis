@@ -7,7 +7,7 @@ from data_synthesization.feature.nfc_tag_mapping.build_nfc_uid import build_uid
 from data_synthesization.feature.nfc_tag_mapping.draw_timestamps import draw_nfc_mapping_timestamps
 from data_synthesization.shared.config.config_model.app_config import AppConfig
 from data_synthesization.shared.domain.models import BinActivityRecord, BinRecord, NfcTagMappingRecord
-from data_synthesization.utils.time import to_utc
+from data_synthesization.shared.utils.time import to_utc
 
 INITIAL_MAPPING_TIMESTAMP = datetime(2025, 1, 1, 2, 30, 0, tzinfo=timezone.utc)
 

@@ -16,10 +16,10 @@ from data_synthesization.generation.tour_item_generator import (
     generate_day_tour_items,
     load_bins_by_area,
 )
-from data_synthesization.utils.tour_and_nfc_mapper import map_events_to_records_for_vehicle_tours
-from data_synthesization.utils.generation_iterator import iter_generation_days
-from data_synthesization.utils.schedule import ServiceSchedule, load_service_schedule
-from data_synthesization.utils.weather import load_daily_weather_context, resolve_latest_weather_file
+from data_synthesization.shared.utils.tour_and_nfc_mapper import map_events_to_records_for_vehicle_tours
+from data_synthesization.shared.utils.generation_iterator import iterator_over_entire_generation_days
+from data_synthesization.shared.utils.schedule import ServiceSchedule, load_service_schedule
+from data_synthesization.shared.utils.weather import load_daily_weather_context, resolve_latest_weather_file
 
 SCHEDULE_PATH = Path("config/schedule.yaml")
 BIN_MAPPING_PATH = Path("data/static/bin_neighbourhood_mapping.csv")
@@ -226,7 +226,7 @@ def run_generate_tour_items(config_path: str) -> None:
 
         last_vehicle_emptying_per_tour: list[tuple[int, datetime]] = []
 
-        for day in iter_generation_days(config):
+        for day in iterator_over_entire_generation_days(config):
             # generate synthetic helper objects
             day_events = _generate_day_events(
                 day=day,

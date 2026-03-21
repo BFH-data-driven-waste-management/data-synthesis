@@ -6,7 +6,7 @@ from pathlib import Path
 
 from data_synthesization.shared.domain.models import BinRecord
 from data_synthesization.generation.latent_filllevel_simulator import LatentFillLevelSimulator
-from data_synthesization.utils.schedule import VehicleSchedule, areas_for_vehicle_day
+from data_synthesization.shared.utils.schedule import VehicleSchedule, areas_for_vehicle_day
 
 
 @dataclass(frozen=True)

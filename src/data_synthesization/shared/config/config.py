@@ -13,7 +13,7 @@ from data_synthesization.shared.config.config_model.tour_generation_config impor
     TourAndNfcMappingConfig,
     TourItemGenerationConfig,
 )
-from data_synthesization.utils.time import parse_datetime
+from data_synthesization.shared.utils.time import parse_datetime
 
 
 def _parse_date(value: str) -> date:

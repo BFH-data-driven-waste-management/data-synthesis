@@ -1,10 +1,10 @@
 from datetime import date, timedelta
 
 from data_synthesization.shared.config.config_model.app_config import AppConfig
-from data_synthesization.utils.time import to_utc
+from data_synthesization.shared.utils.time import to_utc
 
 
-def iter_generation_days(config: AppConfig) -> list[date]:
+def iterator_over_entire_generation_days(config: AppConfig) -> list[date]:
     simulation_start = to_utc(config.simulation.start_date).date()
     generation_end = config.simulation.tour_generation_end_date
 

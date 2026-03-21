@@ -2,7 +2,7 @@ from collections import defaultdict
 from datetime import datetime
 
 from data_synthesization.shared.domain.models import BinActivityRecord, BinRecord
-from data_synthesization.utils.time import to_utc
+from data_synthesization.shared.utils.time import to_utc
 
 
 def validate_bin_activity(

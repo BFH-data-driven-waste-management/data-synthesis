@@ -1,6 +1,6 @@
 from data_synthesization.feature.bin_visit.generator import BinActivityStats
 from data_synthesization.feature.nfc_tag_mapping.generator import NfcTagMappingGenerationStats
-from data_synthesization.generation.tour_generator import TourGenerationStats
+from data_synthesization.feature.tour.generator import TourGenerationStats
 
 
 def log_bin_activity_stats(stats: BinActivityStats) -> None:

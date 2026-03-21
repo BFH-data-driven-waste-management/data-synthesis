@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from data_synthesization.shared.domain.models import BinRecord, NfcTagMappingRecord
 from data_synthesization.feature.nfc_tag_mapping.generator import INITIAL_MAPPING_TIMESTAMP
-from data_synthesization.utils.time import to_utc
+from data_synthesization.shared.utils.time import to_utc
 
 
 def validate_nfc_tag_mapping(

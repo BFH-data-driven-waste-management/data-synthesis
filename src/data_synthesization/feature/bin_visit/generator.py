@@ -6,7 +6,7 @@ import random
 from data_synthesization.shared.config.config_model.app_config import AppConfig
 from data_synthesization.shared.domain.models import BinActivityRecord, BinRecord
 from data_synthesization.feature.bin_visit.map_created_at_to_activity_state import is_created_at_date_initially_active
-from data_synthesization.utils.time import to_utc
+from data_synthesization.shared.utils.time import to_utc
 
 
 @dataclass(frozen=True)

@@ -12,8 +12,8 @@ from data_synthesization.generation.event_effects import (
     get_active_events_for_area_and_date,
     load_events,
 )
-from data_synthesization.utils.schedule import SeasonBounds
-from data_synthesization.utils.weather import DailyWeatherContext
+from data_synthesization.shared.utils.schedule import SeasonBounds
+from data_synthesization.shared.utils.weather import DailyWeatherContext
 
 
 @dataclass(frozen=True)
