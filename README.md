@@ -48,7 +48,17 @@
    - Reads polygons from `/data/neighbourhoods.geojson`
    - Writes output to `data/static/bin_neighbourhood_mapping.csv`.
 
-8. Run the tour item debug pipeline (prints bin visits + vehicle emptying and stops after day 1):
+8. Download and prepare historical weather data for Neuchatel:
+   ```bash
+   python scripts/prepare_historical_weather_neuchatel.py --config config/base.yaml
+   ```
+   - Downloads data from:
+     - `https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/neu/ogd-smn_neu_d_historical.csv` (up to 2025)
+     - `https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/neu/ogd-smn_neu_d_recent.csv` (2026 until yesterday)
+   - Removes rows before `simulation.start_date`
+   - Writes `data/static/historical_weater_neuchatle_DD-MM-YYYY.csv`
+
+9. Run the tour item debug pipeline (prints bin visits + vehicle emptying and stops after day 1):
    ```bash
    PYTHONPATH=src python -m data_synthesization.main generate-tour-items --config config/base.yaml
    ```
