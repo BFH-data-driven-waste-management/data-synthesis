@@ -19,7 +19,8 @@ def iter_dates(start: date, end: date):
         yield current
         current += timedelta(days=1)
 
-
+# simulates the schedule on a given date-range.
+# this script is not need for generation, but useful for debugging.
 def main() -> None:
     service_schedule = load_service_schedule(SCHEDULE_PATH)
     start = parse_date(START_DATE)
