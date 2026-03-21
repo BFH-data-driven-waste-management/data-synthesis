@@ -36,6 +36,38 @@ class EventEffectsConfig:
 
 
 @dataclass(frozen=True)
+class WeatherVariableWeightsConfig:
+    temp_mean: float
+    temp_max: float
+    sunshine: float
+    precipitation: float
+
+
+@dataclass(frozen=True)
+class WeatherNormalizationConfig:
+    temp_mean_baseline: float
+    temp_mean_scale: float
+    temp_max_baseline: float
+    temp_max_scale: float
+    sunshine_baseline: float
+    sunshine_scale: float
+    precipitation_baseline: float
+    precipitation_scale: float
+
+
+@dataclass(frozen=True)
+class WeatherEffectConfig:
+    enabled: bool
+    strong_weather_areas: set[str]
+    strong_area_intensity: float
+    default_area_intensity: float
+    min_multiplier: float
+    max_multiplier: float
+    weights: WeatherVariableWeightsConfig
+    normalization: WeatherNormalizationConfig
+
+
+@dataclass(frozen=True)
 class LatentFillLevelConfig:
     thresholds: ThresholdsConfig
     action_probabilities: dict[str, ActionProbabilityConfig]
@@ -45,3 +77,4 @@ class LatentFillLevelConfig:
     zone_base_fill_rate_ratio_per_day: dict[str, float]
     zone_base_fill_rate_ratio_per_day_weekday_overrides: dict[str, dict[str, float]]
     event_effects: EventEffectsConfig
+    weather_effects: WeatherEffectConfig

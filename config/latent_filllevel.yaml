@@ -88,3 +88,28 @@ latent_filllevel:
       - min_people: 12000
         max_people: 999999
         factor: 0.14
+
+  weather_effects:
+    enabled: true
+    strong_weather_areas:
+      - altstadt
+      - sportAnlagen
+      - seequartiere
+    strong_area_intensity: 0.3
+    default_area_intensity: 0.1
+    min_multiplier: 0.7
+    max_multiplier: 1.3
+    weights:
+      temp_mean: 0.45
+      temp_max: 0.15
+      sunshine: 0.30
+      precipitation: 0.40
+    normalization:
+      temp_mean_baseline: 12.0
+      temp_mean_scale: 10.0
+      temp_max_baseline: 17.0
+      temp_max_scale: 10.0
+      sunshine_baseline: 300.0
+      sunshine_scale: 240.0
+      precipitation_baseline: 2.0
+      precipitation_scale: 6.0

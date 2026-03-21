@@ -12,6 +12,7 @@ from data_synthesization.generation.event_effects import (
     load_events,
 )
 from data_synthesization.utils.schedule import SeasonBounds
+from data_synthesization.utils.weather import DailyWeatherContext
 
 
 @dataclass(frozen=True)
@@ -35,11 +36,13 @@ class LatentFillLevelSimulator:
         seasons: dict[str, SeasonBounds],
         rng: random.Random,
         events_path: str | Path,
+        weather_by_day: dict[date, DailyWeatherContext],
     ) -> None:
         self._config = config
         self._bins_by_id = bins_by_id
         self._seasons = seasons
         self._rng = rng
+        self._weather_by_day = weather_by_day
         self._states: dict[int, _BinState] = {}
 
         loaded_events = load_events(
@@ -131,7 +134,47 @@ class LatentFillLevelSimulator:
             config=self._config.event_effects,
             rng=self._rng,
         )
-        return base_increment * event_multiplier
+        weather_multiplier = self._weather_multiplier(area=area, current_day=current_day)
+        return base_increment * event_multiplier * weather_multiplier
+
+    """
+    Every day receives a weather multiplier that is influenced by the weather conditions.
+    Due to the daily increment the weather is considered for every day since last bin_visit
+    """
+    def _weather_multiplier(self, area: str, current_day: date) -> float:
+        if not self._config.weather_effects.enabled:
+            return 1.0
+
+        weather_context = self._weather_by_day.get(current_day - timedelta(days=1))
+        if weather_context is None:
+            return 1.0
+
+        intensity = (
+            self._config.weather_effects.strong_area_intensity
+            if area in self._config.weather_effects.strong_weather_areas
+            else self._config.weather_effects.default_area_intensity
+        )
+        score = self._weather_score(weather_context)
+        multiplier = 1.0 + intensity * score
+        return max(
+            self._config.weather_effects.min_multiplier,
+            min(multiplier, self._config.weather_effects.max_multiplier),
+        )
+
+    """
+    Calculates a weather score based on the configured weights and normalization for the weather variables.
+    All variables are normalized to the configured baseline and scale.
+    """
+    def _weather_score(self, weather: DailyWeatherContext) -> float:
+        weights = self._config.weather_effects.weights
+        norm = self._config.weather_effects.normalization
+
+        temp_mean_component = weights.temp_mean * ((weather.temp_mean - norm.temp_mean_baseline) / norm.temp_mean_scale)
+        temp_max_component = weights.temp_max * ((weather.temp_max - norm.temp_max_baseline) / norm.temp_max_scale)
+        sunshine_component = weights.sunshine * ((weather.sunshine_duration - norm.sunshine_baseline) / norm.sunshine_scale)
+        precipitation_component = weights.precipitation * ((weather.precipitation - norm.precipitation_baseline) / norm.precipitation_scale)
+
+        return temp_mean_component + temp_max_component + sunshine_component - precipitation_component
 
     def _base_rate_for_day(self, area: str, weekday_name: str) -> float:
         area_overrides = self._config.zone_base_fill_rate_ratio_per_day_weekday_overrides.get(area, {})
