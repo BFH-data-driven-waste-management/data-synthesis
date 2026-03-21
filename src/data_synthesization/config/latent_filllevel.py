@@ -60,8 +60,6 @@ def load_latent_filllevel_config(
             area_weight_default=float(event_effects_raw.get("area_weight_default", 1.0)),
             random_multiplier_min=float(event_effects_raw.get("random_multiplier_min", 0.9)),
             random_multiplier_max=float(event_effects_raw.get("random_multiplier_max", 1.1)),
-            per_day_event_increment_cap_ratio=float(event_effects_raw.get("per_day_event_increment_cap_ratio", 0.25)),
-            multi_event_combination_cap_ratio=float(event_effects_raw.get("multi_event_combination_cap_ratio", 0.35)),
             people_factor_buckets=[
                 EventPeopleFactorBucketConfig(
                     min_people=int(bucket["min_people"]),

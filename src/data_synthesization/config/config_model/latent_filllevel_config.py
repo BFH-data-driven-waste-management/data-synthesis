@@ -32,8 +32,6 @@ class EventEffectsConfig:
     area_weight_default: float
     random_multiplier_min: float
     random_multiplier_max: float
-    per_day_event_increment_cap_ratio: float
-    multi_event_combination_cap_ratio: float
     people_factor_buckets: list[EventPeopleFactorBucketConfig]
 
 

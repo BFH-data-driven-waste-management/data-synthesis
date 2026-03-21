@@ -41,15 +41,11 @@ class LatentFillLevelSimulator:
         self._seasons = seasons
         self._rng = rng
         self._states: dict[int, _BinState] = {}
-        known_areas = {area.strip().lower() for area in config.zone_base_fill_rate_ratio_per_day}
-        normalized_bins_by_area = {
-            area.strip().lower(): list(bin_ids)
-            for area, bin_ids in bins_by_area.items()
-        }
+
         loaded_events = load_events(
             events_path,
-            known_areas=known_areas,
-            bins_by_area=normalized_bins_by_area,
+            known_areas=set(bins_by_area.keys()),
+            bins_by_area=bins_by_area,
         )
         self._active_event_index = build_active_event_index(loaded_events)
 

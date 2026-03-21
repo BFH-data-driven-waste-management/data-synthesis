@@ -256,7 +256,7 @@
         "ExpectedPeoplePerDay": 15000
       }
     ],
-    "AffectedNeighbourhoods": ["Innenstadt", "innenstadtWest", "innenstadtost", "innenstadtNord", "altstadt"]
+    "AffectedNeighbourhoods": ["innenstadt", "innenstadtWest", "innenstadtost", "innenstadtNord", "altstadt"]
   },
   {
     "EventKey": "fasnacht",
@@ -275,7 +275,7 @@
         "ExpectedPeoplePerDay": 10000
       }
     ],
-    "AffectedNeighbourhoods": ["Innenstadt", "innenstadtWest", "innenstadtost", "innenstadtNord", "altstadt"]
+    "AffectedNeighbourhoods": ["innenstadt", "innenstadtWest", "innenstadtost", "innenstadtNord", "altstadt"]
   },
   {
     "EventKey": "plusqile_festival",
