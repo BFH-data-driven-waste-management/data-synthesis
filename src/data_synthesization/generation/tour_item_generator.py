@@ -5,6 +5,7 @@ from math import hypot
 from pathlib import Path
 
 from data_synthesization.domain.models import BinRecord
+from data_synthesization.generation.latent_filllevel_simulator import LatentFillLevelSimulator
 from data_synthesization.utils.schedule import VehicleSchedule, areas_for_vehicle_day
 
 
@@ -28,7 +29,7 @@ class VehicleEmptyingEvent:
 
 @dataclass
 class _VehicleDayState:
-    volume_since_emptying: int
+    volume_since_emptying: float
     current_x: float
     current_y: float
 
@@ -124,12 +125,18 @@ def _append_visit_and_update_state(
     visits: list[BinVisitEvent],
     events: list[BinVisitEvent | VehicleEmptyingEvent],
     state: _VehicleDayState,
+    latent_filllevel_simulator: LatentFillLevelSimulator,
 ) -> None:
     visit = _build_bin_visit_event(day=day, vehicle_number=vehicle_number, area=area, _bin=_bin)
     visits.append(visit)
     events.append(visit)
 
-    state.volume_since_emptying += _bin.volume
+    latent_collection_ratio = latent_filllevel_simulator.latent_collection_ratio_for_visit(
+        bin_id=_bin.id,
+        area=area,
+        visit_day=day,
+    )
+    state.volume_since_emptying += _bin.volume * latent_collection_ratio
     state.current_x = _bin.coord_x
     state.current_y = _bin.coord_y
 
@@ -169,6 +176,7 @@ def _append_area_events(
     state: _VehicleDayState,
     vehicle_emptying_coords: tuple[float, float],
     empty_after_volume: int,
+    latent_filllevel_simulator: LatentFillLevelSimulator,
 ) -> None:
     ordered_bins = _nearest_bin_order(
         bins_by_area.get(area, []),
@@ -187,6 +195,7 @@ def _append_area_events(
             visits=visits,
             events=events,
             state=state,
+            latent_filllevel_simulator=latent_filllevel_simulator,
         )
 
         if state.volume_since_emptying >= empty_after_volume:
@@ -211,6 +220,7 @@ def _append_vehicle_day_events(
     events: list[BinVisitEvent | VehicleEmptyingEvent],
     vehicle_emptying_coords: tuple[float, float],
     empty_after_volume: int,
+    latent_filllevel_simulator: LatentFillLevelSimulator,
 ) -> None:
     state = _initial_vehicle_day_state(vehicle_emptying_coords)
 
@@ -226,6 +236,7 @@ def _append_vehicle_day_events(
             state=state,
             vehicle_emptying_coords=vehicle_emptying_coords,
             empty_after_volume=empty_after_volume,
+            latent_filllevel_simulator=latent_filllevel_simulator,
         )
 
     _append_emptying_and_reset_state(
@@ -256,6 +267,7 @@ def generate_day_tour_items(
     bins: dict[int, BinRecord],
     vehicle_emptying_coords: tuple[float, float],
     empty_after_volume: int,
+    latent_filllevel_simulator: LatentFillLevelSimulator,
 ) -> list[BinVisitEvent | VehicleEmptyingEvent]:
     visits: list[BinVisitEvent] = []
     events: list[BinVisitEvent | VehicleEmptyingEvent] = []
@@ -272,6 +284,7 @@ def generate_day_tour_items(
             events=events,
             vehicle_emptying_coords=vehicle_emptying_coords,
             empty_after_volume=empty_after_volume,
+            latent_filllevel_simulator=latent_filllevel_simulator,
         )
 
     return events

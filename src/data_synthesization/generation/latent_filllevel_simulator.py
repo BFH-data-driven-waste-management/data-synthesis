@@ -39,14 +39,7 @@ class LatentFillLevelSimulator:
     """
     def observe_visit(self, bin_id: int, area: str, visit_day: date) -> FillObservation:
         bin_record = self._bins_by_id[bin_id]
-        state = self._states.get(bin_id)
-        if state is None:
-            initial_ratio = self._rng.uniform(0.05, 0.35)
-            state = _BinState(latent_fill_volume=bin_record.volume * initial_ratio, last_updated_day=visit_day)
-            self._states[bin_id] = state
-        else:
-            self._accumulate_between_days(state, bin_record, area, visit_day)
-
+        state = self._state_for_visit(bin_id=bin_id, area=area, visit_day=visit_day)
         fill_level_key = self._fill_level_key(state.latent_fill_volume / bin_record.volume)
         fill_level = self._to_observed_fill_level(fill_level_key)
 
@@ -58,6 +51,34 @@ class LatentFillLevelSimulator:
             state.latent_fill_volume = 0.0
 
         return FillObservation(fill_level=fill_level, action=action)
+
+    """
+    Determines the latent waste for a visit to a bin.
+    Note: this is only used for calculating the actual capacity addition to the vehicle.
+    FIXME: The latent fill level should only be calculated and used via observe_visit. Therefore the time when the observe_visit
+    function is called should be changed.    
+    """
+    def latent_collection_ratio_for_visit(self, bin_id: int, area: str, visit_day: date) -> float:
+        state = self._state_for_visit(bin_id=bin_id, area=area, visit_day=visit_day)
+        bin_record = self._bins_by_id[bin_id]
+        fill_level_key = self._fill_level_key(state.latent_fill_volume / bin_record.volume)
+        if fill_level_key == "half_full":
+            return 0.5
+        if fill_level_key in ("full", "over_full"):
+            return 1.0
+        return 0.0
+
+    def _state_for_visit(self, bin_id: int, area: str, visit_day: date) -> _BinState:
+        bin_record = self._bins_by_id[bin_id]
+        state = self._states.get(bin_id)
+        if state is None:
+            initial_ratio = self._rng.uniform(0.05, 0.35)
+            state = _BinState(latent_fill_volume=bin_record.volume * initial_ratio, last_updated_day=visit_day)
+            self._states[bin_id] = state
+            return state
+
+        self._accumulate_between_days(state, bin_record, area, visit_day)
+        return state
 
     """
     for each day since last update, accumulate the daily increment of the latent fill level.

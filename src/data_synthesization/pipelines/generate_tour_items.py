@@ -121,6 +121,7 @@ def _generate_day_events(
     activities_by_bin: dict[int, list[tuple[datetime, bool]]],
     vehicle_emptying_coords: tuple[float, float],
     empty_after_volume: int,
+    latent_filllevel_simulator: LatentFillLevelSimulator,
 ) -> list[BinVisitEvent | VehicleEmptyingEvent]:
     active_bins_by_id = _active_bins_for_day(
         day=day,
@@ -135,6 +136,7 @@ def _generate_day_events(
         bins=active_bins_by_id,
         vehicle_emptying_coords=vehicle_emptying_coords,
         empty_after_volume=empty_after_volume,
+        latent_filllevel_simulator=latent_filllevel_simulator,
     )
 
 """
@@ -226,6 +228,7 @@ def run_generate_tour_items(config_path: str) -> None:
                 activities_by_bin=activities_by_bin,
                 vehicle_emptying_coords=config.tour_item_generation.vehicle_emptying_coords,
                 empty_after_volume=config.tour_item_generation.empty_after_volume,
+                latent_filllevel_simulator=latent_filllevel_simulator,
             )
             # generate database rows (considerings e.g. mapping via nfc-tag and mapping to virtual tour)
             day_bin_visits, day_vehicle_emptyings, last_vehicle_emptying_per_tour_per_day = _generate_records_for_day(
