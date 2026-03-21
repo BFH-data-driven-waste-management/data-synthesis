@@ -1,73 +1,17 @@
 # Thesis - Data Synthetization
 
-- Dockerized PostgreSQL database with sql-scheme of `Project 2`.
-- Simulation-based data generation for Thesis data foundation.
+This repository contains code and data for the synthetization of all data sets used in the thesis under consideration of `Project 2`'s data model.
+The data is generated based on real-world inputs such as bin locations, weather data, and events.
+
+Realistic assumptions are made about the data, because no empirical data is available.
+
+## Repository structure
+- `/config` – configuration files for the pipelines.
+- `/data` – raw and preprocessed data.
+- `/scripts` – utility scripts for data preparation and processing.
+- `/sql` – sql seeding of schema and master data.
+- `/src` – contains the actual generation of the data.
+
 
 ## Usage
-1. Provide environment variables in `.env` file for the database container.
-2. Start the container:
-   ```bash
-   docker compose up -d
-   ```
-3. Connect to DB:
-   ```bash
-   psql postgresql://postgres:postgres@localhost:5432/postgres
-   ```
-
-
-## Python setup (pipeline)
-1. Create and activate a virtual environment:
-   ```bash
-   python3.10 -m venv .venv
-   source .venv/bin/activate
-   ```
-2. Install dependencies centrally from `requirements.txt`:
-   ```bash
-   python -m pip install -r requirements.txt
-   ```
-3. Configure database DSN via env var (or `database.dsn` in YAML):
-   ```bash
-   export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres"
-   ```
-4. Run the bin activity pipeline:
-   ```bash
-   PYTHONPATH=src python -m data_synthesization.main generate-bin-activity --config config/base.yaml
-   ```
-5. Run the NFC tag mapping pipeline:
-   ```bash
-   PYTHONPATH=src python -m data_synthesization.main generate-nfc-tag-mapping --config config/base.yaml
-   ```
-6. Run the tour pipeline:
-   ```bash
-   PYTHONPATH=src python -m data_synthesization.main generate-tours --config config/base.yaml
-   ```
-7. Build a bin to neighbourhood mapping CSV for generator preprocessing:
-   ```bash
-   python scripts/assign_bins_to_neighbourhoods.py
-   ```
-   - Reads polygons from `/data/neighbourhoods.geojson`
-   - Writes output to `data/static/bin_neighbourhood_mapping.csv`.
-
-8. Download and prepare historical weather data for Neuchatel:
-   ```bash
-   python scripts/prepare_historical_weather_neuchatel.py --config config/base.yaml
-   ```
-   - Downloads data from:
-     - `https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/neu/ogd-smn_neu_d_historical.csv` (up to 2025)
-     - `https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/neu/ogd-smn_neu_d_recent.csv` (2026 until yesterday)
-   - Removes rows before `simulation.start_date`
-   - Writes `data/static/historical_weater_neuchatle_DD-MM-YYYY.csv`
-
-9. Run the tour item debug pipeline (prints bin visits + vehicle emptying and stops after day 1):
-   ```bash
-   PYTHONPATH=src python -m data_synthesization.main generate-tour-items --config config/base.yaml
-   ```
-
-
-## Notes
-- Scripts in `/docker-entrypoint-initdb.d` run only on first initialization of the data volume.
-- To re-run schema initialization, remove the `postgres-data` volume first:
-  ```bash
-  docker compose down -v
-  docker compose up -d
-  ```
+Consult `USAGE.md` for detailed instructions on how to set up the environment and run the data generation pipelines.
