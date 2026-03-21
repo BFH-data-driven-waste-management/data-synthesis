@@ -23,6 +23,7 @@ from data_synthesization.utils.schedule import ServiceSchedule, load_service_sch
 SCHEDULE_PATH = Path("config/schedule.yaml")
 BIN_MAPPING_PATH = Path("data/static/bin_neighbourhood_mapping.csv")
 LATENT_FILLLEVEL_PATH = Path("config/latent_filllevel.yaml")
+EVENTS_PATH = Path("data/static/events_with_expected_attendance_tourism_office.json")
 
 
 def _group_tours_by_vehicle_and_day(
@@ -209,8 +210,10 @@ def run_generate_tour_items(config_path: str) -> None:
         latent_filllevel_simulator = LatentFillLevelSimulator(
             config=latent_filllevel_config,
             bins_by_id=bins_by_id,
+            bins_by_area=bins_by_area_config,
             seasons=service_schedule.seasons,
             rng=rng,
+            events_path=EVENTS_PATH,
         )
 
         bin_visit_records: list[BinVisitRecord] = []

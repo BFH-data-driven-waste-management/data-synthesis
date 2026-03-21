@@ -1,9 +1,16 @@
 from dataclasses import dataclass
 from datetime import date, timedelta
 import random
+from pathlib import Path
 
 from data_synthesization.config.config_model.latent_filllevel_config import LatentFillLevelConfig
 from data_synthesization.domain.models import BinRecord
+from data_synthesization.generation.event_effects import (
+    build_active_event_index,
+    compute_event_increment_liters,
+    get_active_events_for_area_and_date,
+    load_events,
+)
 from data_synthesization.utils.schedule import SeasonBounds
 
 
@@ -24,14 +31,27 @@ class LatentFillLevelSimulator:
         self,
         config: LatentFillLevelConfig,
         bins_by_id: dict[int, BinRecord],
+        bins_by_area: dict[str, list[int]],
         seasons: dict[str, SeasonBounds],
         rng: random.Random,
+        events_path: str | Path,
     ) -> None:
         self._config = config
         self._bins_by_id = bins_by_id
         self._seasons = seasons
         self._rng = rng
         self._states: dict[int, _BinState] = {}
+        known_areas = {area.strip().lower() for area in config.zone_base_fill_rate_ratio_per_day}
+        normalized_bins_by_area = {
+            area.strip().lower(): list(bin_ids)
+            for area, bin_ids in bins_by_area.items()
+        }
+        loaded_events = load_events(
+            events_path,
+            known_areas=known_areas,
+            bins_by_area=normalized_bins_by_area,
+        )
+        self._active_event_index = build_active_event_index(loaded_events)
 
     """
     Simulates the latent fill level of a bin over time.
@@ -92,7 +112,7 @@ class LatentFillLevelSimulator:
         state.last_updated_day = visit_day
 
     """
-    central logic for calculating the daily increment of the latent fill level.
+    central logic for calculating the daily increment of the latent fill level in liters.
     """
     def _daily_increment(self, volume: int, area: str, current_day: date) -> float:
         weekday_name = current_day.strftime("%A").lower()
@@ -104,7 +124,19 @@ class LatentFillLevelSimulator:
             self._config.random_daily_multiplier.min,
             self._config.random_daily_multiplier.max,
         )
-        return volume * base_rate * seasonal_factor * weekday_factor * random_multiplier
+        base_increment = volume * base_rate * seasonal_factor * weekday_factor * random_multiplier
+        active_events = get_active_events_for_area_and_date(
+            self._active_event_index,
+            area=area,
+            current_day=current_day,
+        )
+        event_increment = compute_event_increment_liters(
+            volume_liters=volume,
+            active_events=active_events,
+            config=self._config.event_effects,
+            rng_value_provider=self._rng.uniform,
+        )
+        return base_increment + event_increment
 
     def _base_rate_for_day(self, area: str, weekday_name: str) -> float:
         area_overrides = self._config.zone_base_fill_rate_ratio_per_day_weekday_overrides.get(area, {})

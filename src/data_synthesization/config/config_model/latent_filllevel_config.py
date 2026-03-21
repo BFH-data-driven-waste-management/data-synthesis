@@ -20,6 +20,24 @@ class ActionProbabilityConfig:
 
 
 @dataclass(frozen=True)
+class EventPeopleFactorBucketConfig:
+    min_people: int
+    max_people: int
+    factor: float
+
+
+@dataclass(frozen=True)
+class EventEffectsConfig:
+    enabled: bool
+    area_weight_default: float
+    random_multiplier_min: float
+    random_multiplier_max: float
+    per_day_event_increment_cap_ratio: float
+    multi_event_combination_cap_ratio: float
+    people_factor_buckets: list[EventPeopleFactorBucketConfig]
+
+
+@dataclass(frozen=True)
 class LatentFillLevelConfig:
     thresholds: ThresholdsConfig
     action_probabilities: dict[str, ActionProbabilityConfig]
@@ -28,3 +46,4 @@ class LatentFillLevelConfig:
     random_daily_multiplier: RatioRangeConfig
     zone_base_fill_rate_ratio_per_day: dict[str, float]
     zone_base_fill_rate_ratio_per_day_weekday_overrides: dict[str, dict[str, float]]
+    event_effects: EventEffectsConfig

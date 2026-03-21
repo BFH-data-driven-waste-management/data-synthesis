@@ -5,6 +5,8 @@ import yaml
 
 from data_synthesization.config.config_model.latent_filllevel_config import (
     ActionProbabilityConfig,
+    EventEffectsConfig,
+    EventPeopleFactorBucketConfig,
     LatentFillLevelConfig,
     RatioRangeConfig,
     ThresholdsConfig,
@@ -23,6 +25,8 @@ def load_latent_filllevel_config(
 
     configured_rates = dict(config["zone_base_fill_rate_ratio_per_day"])
     configured_weekday_overrides = dict(config.get("zone_base_fill_rate_ratio_per_day_weekday_overrides", {}))
+    event_effects_raw = dict(config.get("event_effects", {}))
+    people_buckets_raw = list(event_effects_raw.get("people_factor_buckets", []))
 
     thresholds_raw = config["thresholds"]
     random_raw = config["random_daily_multiplier"]
@@ -51,4 +55,26 @@ def load_latent_filllevel_config(
             area: {day: float(value) for day, value in weekday_overrides.items()}
             for area, weekday_overrides in configured_weekday_overrides.items()
         },
+        event_effects=EventEffectsConfig(
+            enabled=bool(event_effects_raw.get("enabled", True)),
+            area_weight_default=float(event_effects_raw.get("area_weight_default", 1.0)),
+            random_multiplier_min=float(event_effects_raw.get("random_multiplier_min", 0.9)),
+            random_multiplier_max=float(event_effects_raw.get("random_multiplier_max", 1.1)),
+            per_day_event_increment_cap_ratio=float(event_effects_raw.get("per_day_event_increment_cap_ratio", 0.25)),
+            multi_event_combination_cap_ratio=float(event_effects_raw.get("multi_event_combination_cap_ratio", 0.35)),
+            people_factor_buckets=[
+                EventPeopleFactorBucketConfig(
+                    min_people=int(bucket["min_people"]),
+                    max_people=int(bucket["max_people"]),
+                    factor=float(bucket["factor"]),
+                )
+                for bucket in people_buckets_raw
+            ] or [
+                EventPeopleFactorBucketConfig(min_people=0, max_people=999, factor=0.02),
+                EventPeopleFactorBucketConfig(min_people=1000, max_people=2999, factor=0.04),
+                EventPeopleFactorBucketConfig(min_people=3000, max_people=6999, factor=0.07),
+                EventPeopleFactorBucketConfig(min_people=7000, max_people=11999, factor=0.10),
+                EventPeopleFactorBucketConfig(min_people=12000, max_people=999999, factor=0.14),
+            ],
+        ),
     )
