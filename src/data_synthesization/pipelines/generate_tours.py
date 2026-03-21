@@ -1,9 +1,9 @@
 from datetime import datetime, time, timezone
 
-from data_synthesization.config.config import load_config
-from data_synthesization.db.connection import connect
-from data_synthesization.db.reader import read_vehicles
-from data_synthesization.db.writer import insert_tours
+from data_synthesization.shared.config.config import load_config
+from data_synthesization.shared.db.connection import connect
+from data_synthesization.shared.db.reader import read_vehicles
+from data_synthesization.shared.db.writer import insert_tours
 from data_synthesization.generation.tour_generator import generate_tours
 from data_synthesization.validation.tour_checks import validate_tours
 

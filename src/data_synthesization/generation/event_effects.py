@@ -4,7 +4,7 @@ from pathlib import Path
 import json
 from random import Random
 
-from data_synthesization.config.config_model.latent_filllevel_config import EventEffectsConfig
+from data_synthesization.shared.config.config_model.latent_filllevel_config import EventEffectsConfig
 
 @dataclass(frozen=True)
 class EventPeriod:

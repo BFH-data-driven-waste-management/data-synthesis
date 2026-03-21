@@ -3,9 +3,9 @@ from datetime import date
 from datetime import datetime, time, timedelta, timezone
 import random
 
-from data_synthesization.config.config_model.app_config import AppConfig
-from data_synthesization.config.config_model.simulation_config import TourTimingConfig
-from data_synthesization.domain.models import TourRecord
+from data_synthesization.shared.config.config_model.app_config import AppConfig
+from data_synthesization.shared.config.config_model.simulation_config import TourTimingConfig
+from data_synthesization.shared.domain.models import TourRecord
 from data_synthesization.utils.generation_iterator import iter_generation_days
 
 

@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 
-from data_synthesization.config.config_model.app_config import AppConfig
+from data_synthesization.shared.config.config_model.app_config import AppConfig
 from data_synthesization.utils.time import to_utc
 
 

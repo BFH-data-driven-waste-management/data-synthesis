@@ -1,7 +1,7 @@
-from data_synthesization.config.config import load_config
-from data_synthesization.db.connection import connect
-from data_synthesization.db.reader import read_bin_activities, read_bins
-from data_synthesization.db.writer import insert_nfc_tag_mappings
+from data_synthesization.shared.config.config import load_config
+from data_synthesization.shared.db.connection import connect
+from data_synthesization.shared.db.reader import read_bin_activities, read_bins
+from data_synthesization.shared.db.writer import insert_nfc_tag_mappings
 from data_synthesization.generation.nfc_tag_mapping_generator import generate_nfc_tag_mapping_history
 from data_synthesization.validation.nfc_tag_mapping_checks import validate_nfc_tag_mapping
 

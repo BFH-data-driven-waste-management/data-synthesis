@@ -3,7 +3,7 @@ from datetime import datetime
 
 from psycopg import Connection
 
-from data_synthesization.domain.models import (
+from data_synthesization.shared.domain.models import (
     BinActivityRecord,
     BinVisitRecord,
     NfcTagMappingRecord,

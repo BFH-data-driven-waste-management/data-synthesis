@@ -2,7 +2,7 @@ from typing import Sequence
 
 from psycopg import Connection
 
-from data_synthesization.domain.models import BinActivityRecord, BinRecord, TourRecord, NfcTagMappingRecord
+from data_synthesization.shared.domain.models import BinActivityRecord, BinRecord, TourRecord, NfcTagMappingRecord
 
 
 def read_vehicles(conn: Connection) -> list[int]:

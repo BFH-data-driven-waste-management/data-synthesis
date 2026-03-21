@@ -4,12 +4,12 @@ from pathlib import Path
 import os
 from typing import Any
 
-from data_synthesization.config.config_model.app_config import DatabaseConfig, AppConfig
-from data_synthesization.config.config_model.bin_activity_config import InitialStateConfig, TransitionProbabilityConfig, \
+from data_synthesization.shared.config.config_model.app_config import DatabaseConfig, AppConfig
+from data_synthesization.shared.config.config_model.bin_activity_config import InitialStateConfig, TransitionProbabilityConfig, \
     EpisodeDurationConfig, BinActivityConfig
-from data_synthesization.config.config_model.nfc_tag_mapping_config import NfcTagMappingConfig, NfcTagMappingDistributionConfig
-from data_synthesization.config.config_model.simulation_config import SimulationConfig, TourTimingConfig
-from data_synthesization.config.config_model.tour_generation_config import (
+from data_synthesization.shared.config.config_model.nfc_tag_mapping_config import NfcTagMappingConfig, NfcTagMappingDistributionConfig
+from data_synthesization.shared.config.config_model.simulation_config import SimulationConfig, TourTimingConfig
+from data_synthesization.shared.config.config_model.tour_generation_config import (
     TourAndNfcMappingConfig,
     TourItemGenerationConfig,
 )

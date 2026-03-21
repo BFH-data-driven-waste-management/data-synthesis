@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 
-from data_synthesization.config.config_model.bin_activity_config import BinActivityConfig
-from data_synthesization.config.config_model.nfc_tag_mapping_config import NfcTagMappingConfig
-from data_synthesization.config.config_model.simulation_config import SimulationConfig
-from data_synthesization.config.config_model.tour_generation_config import (
+from data_synthesization.shared.config.config_model.bin_activity_config import BinActivityConfig
+from data_synthesization.shared.config.config_model.nfc_tag_mapping_config import NfcTagMappingConfig
+from data_synthesization.shared.config.config_model.simulation_config import SimulationConfig
+from data_synthesization.shared.config.config_model.tour_generation_config import (
     TourAndNfcMappingConfig,
     TourItemGenerationConfig,
 )

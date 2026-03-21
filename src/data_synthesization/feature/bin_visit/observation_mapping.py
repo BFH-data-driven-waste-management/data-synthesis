@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from data_synthesization.config.config_model.app_config import AppConfig
+from data_synthesization.shared.config.config_model.app_config import AppConfig
 
 POC_CREATED_AT = datetime(2024, 12, 31, 2, 0, 0, tzinfo=timezone.utc)
 LATE_IMPORT_CREATED_AT = datetime(2025, 1, 1, 2, 0, 0, tzinfo=timezone.utc)

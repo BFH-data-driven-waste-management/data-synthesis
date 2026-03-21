@@ -3,7 +3,7 @@ from typing import Any
 
 import yaml
 
-from data_synthesization.config.config_model.latent_filllevel_config import (
+from data_synthesization.shared.config.config_model.latent_filllevel_config import (
     ActionProbabilityConfig,
     EventEffectsConfig,
     EventPeopleFactorBucketConfig,

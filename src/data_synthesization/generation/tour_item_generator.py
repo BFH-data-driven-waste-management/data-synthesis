@@ -4,7 +4,7 @@ from datetime import date
 from math import hypot
 from pathlib import Path
 
-from data_synthesization.domain.models import BinRecord
+from data_synthesization.shared.domain.models import BinRecord
 from data_synthesization.generation.latent_filllevel_simulator import LatentFillLevelSimulator
 from data_synthesization.utils.schedule import VehicleSchedule, areas_for_vehicle_day
 

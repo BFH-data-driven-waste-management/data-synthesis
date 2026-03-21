@@ -3,12 +3,12 @@ from collections import defaultdict
 from datetime import date, datetime, time, timezone, timedelta
 from pathlib import Path
 
-from data_synthesization.config.config import load_config
-from data_synthesization.config.latent_filllevel import load_latent_filllevel_config
-from data_synthesization.db.connection import connect
-from data_synthesization.db.reader import read_bin_activities, read_bins, read_nfc_tag_mappings, read_tours
-from data_synthesization.db.writer import insert_bin_visits, insert_vehicle_emptyings, update_tours_ended_at
-from data_synthesization.domain.models import BinActivityRecord, BinRecord, BinVisitRecord, NfcTagMappingRecord, TourRecord, VehicleEmptyingRecord
+from data_synthesization.shared.config.config import load_config
+from data_synthesization.shared.config.latent_filllevel import load_latent_filllevel_config
+from data_synthesization.shared.db.connection import connect
+from data_synthesization.shared.db.reader import read_bin_activities, read_bins, read_nfc_tag_mappings, read_tours
+from data_synthesization.shared.db.writer import insert_bin_visits, insert_vehicle_emptyings, update_tours_ended_at
+from data_synthesization.shared.domain.models import BinActivityRecord, BinRecord, BinVisitRecord, NfcTagMappingRecord, TourRecord, VehicleEmptyingRecord
 from data_synthesization.generation.latent_filllevel_simulator import LatentFillLevelSimulator
 from data_synthesization.generation.tour_item_generator import (
     BinVisitEvent,

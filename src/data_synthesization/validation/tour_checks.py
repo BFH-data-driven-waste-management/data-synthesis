@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from data_synthesization.domain.models import TourRecord
+from data_synthesization.shared.domain.models import TourRecord
 from data_synthesization.utils.time import to_utc
 
 

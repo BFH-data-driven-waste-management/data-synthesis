@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from data_synthesization.domain.enums import ConnectivityState, FillLevel, VisitAction
+from data_synthesization.shared.domain.enums import ConnectivityState, FillLevel, VisitAction
 
 
 @dataclass(frozen=True)

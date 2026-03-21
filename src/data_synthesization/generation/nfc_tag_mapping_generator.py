@@ -4,8 +4,8 @@ from datetime import datetime, timedelta, timezone
 import hashlib
 import random
 
-from data_synthesization.config.config_model.app_config import AppConfig
-from data_synthesization.domain.models import BinActivityRecord, BinRecord, NfcTagMappingRecord
+from data_synthesization.shared.config.config_model.app_config import AppConfig
+from data_synthesization.shared.domain.models import BinActivityRecord, BinRecord, NfcTagMappingRecord
 from data_synthesization.utils.time import to_utc
 
 INITIAL_MAPPING_TIMESTAMP = datetime(2025, 1, 1, 2, 30, 0, tzinfo=timezone.utc)

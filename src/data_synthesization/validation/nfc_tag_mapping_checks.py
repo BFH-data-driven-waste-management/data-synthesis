@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-from data_synthesization.domain.models import BinRecord, NfcTagMappingRecord
+from data_synthesization.shared.domain.models import BinRecord, NfcTagMappingRecord
 from data_synthesization.generation.nfc_tag_mapping_generator import INITIAL_MAPPING_TIMESTAMP
 from data_synthesization.utils.time import to_utc
 

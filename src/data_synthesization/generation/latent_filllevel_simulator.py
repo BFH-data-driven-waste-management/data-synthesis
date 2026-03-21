@@ -3,9 +3,9 @@ from datetime import date, timedelta
 import random
 from pathlib import Path
 
-from data_synthesization.config.config_model.latent_filllevel_config import LatentFillLevelConfig
-from data_synthesization.domain.enums import FillLevel, VisitAction
-from data_synthesization.domain.models import BinRecord
+from data_synthesization.shared.config.config_model.latent_filllevel_config import LatentFillLevelConfig
+from data_synthesization.shared.domain.enums import FillLevel, VisitAction
+from data_synthesization.shared.domain.models import BinRecord
 from data_synthesization.generation.event_effects import (
     build_active_event_index,
     compute_event_multiplier,
