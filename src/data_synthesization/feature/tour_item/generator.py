@@ -2,7 +2,7 @@ import random
 from dataclasses import dataclass
 from datetime import date, datetime
 
-from data_synthesization.feature.tour_item.events_generation import generate_day_events
+from data_synthesization.feature.tour_item.events_generation import generate_day_events, EventGenerationContext
 from data_synthesization.feature.tour_item.record_mapping import map_events_to_records_for_vehicle_tours
 from data_synthesization.feature.tour_item.types import BinVisitEvent, VehicleEmptyingEvent
 from data_synthesization.feature.tour_item.util import _group_tours_by_vehicle_and_day, _group_nfc_mappings_by_bin, \
@@ -118,9 +118,7 @@ def _generate_day_events(
         bins_by_id=bins_by_id,
         activities_by_bin=activities_by_bin,
     )
-    return generate_day_events(
-        day=day,
-        vehicles_schedules=service_schedule.vehicles,
+    context = EventGenerationContext(
         seasons=service_schedule.seasons,
         bins_by_area=bins_by_area_config,
         bins=active_bins_by_id,
@@ -132,6 +130,11 @@ def _generate_day_events(
         road_network_detour_factor=road_network_detour_factor,
         seconds_per_bin_visit=seconds_per_bin_visit,
         seconds_per_vehicle_emptying=seconds_per_vehicle_emptying,
+    )
+    return generate_day_events(
+        day=day,
+        vehicles_schedules=service_schedule.vehicles,
+        context=context,
     )
 
 
