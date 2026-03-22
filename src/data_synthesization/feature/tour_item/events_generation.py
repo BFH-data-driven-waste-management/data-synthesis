@@ -7,7 +7,7 @@ from data_synthesization.feature.tour_item.schedule.route_to_nearest_bin import 
 from data_synthesization.feature.tour_item.types import BinVisitEvent, VehicleEmptyingEvent
 from data_synthesization.feature.tour_item.fill_level.latent_fill_level_simulator import LatentFillLevelSimulator
 from data_synthesization.shared.config.config_model.schedule_config import VehicleSchedule
-from data_synthesization.shared.domain.models import BinRecord
+from data_synthesization.shared.domain.models import BinRecord, NfcTagMappingRecord
 
 
 @dataclass
@@ -24,6 +24,7 @@ def generate_day_events(
     seasons: dict[str, tuple[tuple[int, int], tuple[int, int]]],
     bins_by_area: dict[str, list[int]],
     bins: dict[int, BinRecord],
+    mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
     vehicle_emptying_coords: tuple[float, float],
     empty_after_volume: int,
     latent_fill_level_simulator: LatentFillLevelSimulator,
@@ -42,6 +43,7 @@ def generate_day_events(
             areas=areas,
             bins_by_area=bins_by_area,
             bins=bins,
+            mappings_by_bin=mappings_by_bin,
             events=events,
             vehicle_emptying_coords=vehicle_emptying_coords,
             empty_after_volume=empty_after_volume,
@@ -61,6 +63,7 @@ def _append_vehicle_day_events(
     areas: list[str],
     bins_by_area: dict[str, list[int]],
     bins: dict[int, BinRecord],
+    mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
     events: list[BinVisitEvent | VehicleEmptyingEvent],
     vehicle_emptying_coords: tuple[float, float],
     empty_after_volume: int,
@@ -79,6 +82,7 @@ def _append_vehicle_day_events(
             area=area,
             bins_by_area=bins_by_area,
             bins=bins,
+            mappings_by_bin=mappings_by_bin,
             events=events,
             state=state,
             vehicle_emptying_coords=vehicle_emptying_coords,
@@ -108,6 +112,7 @@ def _append_area_events(
     area: str,
     bins_by_area: dict[str, list[int]],
     bins: dict[int, BinRecord],
+    mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
     events: list[BinVisitEvent | VehicleEmptyingEvent],
     state: _VehicleDayState,
     vehicle_emptying_coords: tuple[float, float],
@@ -134,6 +139,7 @@ def _append_area_events(
             _bin=_bin,
             events=events,
             state=state,
+            mappings_by_bin=mappings_by_bin,
             latent_fill_level_simulator=latent_fill_level_simulator,
             seconds_per_bin_visit=seconds_per_bin_visit,
             road_network_detour_factor=road_network_detour_factor,
@@ -169,6 +175,7 @@ def _append_visit_and_update_state(
     _bin: BinRecord,
     events: list[BinVisitEvent | VehicleEmptyingEvent],
     state: _VehicleDayState,
+    mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
     latent_fill_level_simulator: LatentFillLevelSimulator,
     seconds_per_bin_visit: int,
     road_network_detour_factor: float,
@@ -204,6 +211,11 @@ def _append_visit_and_update_state(
             coord_y=_bin.coord_y,
             event_timestamp=event_timestamp,
             received_timestamp=received_timestamp,
+            nfc_tag_mapping_id=_find_mapping_for_bin_visit_time(
+                exact_time=event_timestamp,
+                bin_id=_bin.id,
+                mappings_by_bin=mappings_by_bin,
+            ),
         )
     )
 
@@ -282,3 +294,14 @@ def _estimate_travel_seconds(
     direct_distance_meters = hypot(target_x - start_x, target_y - start_y)
     network_distance_meters = direct_distance_meters * road_network_detour_factor
     return max(1, int(network_distance_meters / average_speed_meters_per_second))
+
+
+def _find_mapping_for_bin_visit_time(
+    exact_time: datetime,
+    bin_id: int,
+    mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
+) -> int | None:
+    for mapping in mappings_by_bin.get(bin_id, []):
+        if mapping.mapped_at <= exact_time and (mapping.unmapped_at is None or exact_time < mapping.unmapped_at):
+            return mapping.id
+    return None

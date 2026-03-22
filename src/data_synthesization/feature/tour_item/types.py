@@ -16,6 +16,7 @@ class BinVisitEvent:
     coord_y: float
     event_timestamp: datetime
     received_timestamp: datetime
+    nfc_tag_mapping_id: int | None
 
 
 @dataclass(frozen=True)

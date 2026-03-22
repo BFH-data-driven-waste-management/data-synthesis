@@ -2,17 +2,14 @@ import random
 from datetime import datetime
 from uuid import uuid4
 
-from data_synthesization.feature.tour_item.active_nfc_mapping.find_active_mapping import find_mapping_for_bin_visit_day
 from data_synthesization.feature.tour_item.types import BinVisitEvent, VehicleEmptyingEvent
 from data_synthesization.shared.domain.enums import ConnectivityState
-from data_synthesization.shared.domain.models import BinVisitRecord, NfcTagMappingRecord, TourRecord, \
-    VehicleEmptyingRecord
+from data_synthesization.shared.domain.models import BinVisitRecord, TourRecord, VehicleEmptyingRecord
 
 
 def map_events_to_records_for_vehicle_tours(
         vehicle_events: list[BinVisitEvent | VehicleEmptyingEvent],
         vehicle_tours: list[TourRecord],
-        mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
         rng: random.Random,
 ) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
     bin_visit_records: list[BinVisitRecord] = []
@@ -27,7 +24,6 @@ def map_events_to_records_for_vehicle_tours(
             tour=tour,
             vehicle_events=vehicle_events,
             belongs_to_first_virtual_tour=belongs_to_first_virtual_tour,
-            mappings_by_bin=mappings_by_bin,
             rng=rng,
             bin_visit_records=bin_visit_records,
             vehicle_emptying_records=vehicle_emptying_records,
@@ -42,7 +38,6 @@ def _map_single_tour_events_to_records(
         tour: TourRecord,
         vehicle_events: list[BinVisitEvent | VehicleEmptyingEvent],
         belongs_to_first_virtual_tour: list[int],
-        mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
         rng: random.Random,
         bin_visit_records: list[BinVisitRecord],
         vehicle_emptying_records: list[VehicleEmptyingRecord],
@@ -60,7 +55,6 @@ def _map_single_tour_events_to_records(
                 _append_bin_visit_record_if_possible(
                     event=event,
                     tour=tour,
-                    mappings_by_bin=mappings_by_bin,
                     bin_visit_records=bin_visit_records
                 )
         else:
@@ -102,15 +96,9 @@ def _event_assigned_to_current_virtual_tour(
 def _append_bin_visit_record_if_possible(
         event: BinVisitEvent,
         tour: TourRecord,
-        mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
         bin_visit_records: list[BinVisitRecord],
 ) -> None:
-    nfc_tag_mapping_id = find_mapping_for_bin_visit_day(
-        exact_time=event.event_timestamp,
-        bin_id=event.bin_id,
-        mappings_by_bin=mappings_by_bin,
-    )
-    if nfc_tag_mapping_id is None:
+    if event.nfc_tag_mapping_id is None:
         return
 
     bin_visit_records.append(
@@ -122,7 +110,7 @@ def _append_bin_visit_record_if_possible(
             fill_level=event.fill_level,
             action=event.action,
             tour_id=tour.id,
-            nfc_tag_mapping_id=nfc_tag_mapping_id,
+            nfc_tag_mapping_id=event.nfc_tag_mapping_id,
         )
     )
 
