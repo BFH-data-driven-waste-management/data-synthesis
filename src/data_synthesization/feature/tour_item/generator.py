@@ -80,6 +80,8 @@ def generate_tour_item_records(
             tours_by_vehicle_day=tours_by_vehicle_day,
             nfc_mappings_by_bin=nfc_mappings_by_bin,
             rng=rng,
+            missing_vehicle_emptying_log_share=config.tour_item_generation.missing_vehicle_emptying_log_share,
+            cross_tour_duplicate_assignment_share=config.tour_item_generation.cross_tour_duplicate_assignment_share,
         )
         bin_visit_records.extend(day_bin_visits)
         vehicle_emptying_records.extend(day_vehicle_emptyings)
@@ -142,6 +144,8 @@ def _generate_records_for_day(
         tours_by_vehicle_day: dict[tuple[int, date], list[TourRecord]],
         nfc_mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
         rng: random.Random,
+        missing_vehicle_emptying_log_share: float,
+        cross_tour_duplicate_assignment_share: float,
 ) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
     day_bin_visits: list[BinVisitRecord] = []
     day_vehicle_emptyings: list[VehicleEmptyingRecord] = []
@@ -156,6 +160,8 @@ def _generate_records_for_day(
             vehicle_tours=vehicle_tours,
             nfc_mappings_by_bin=nfc_mappings_by_bin,
             rng=rng,
+            missing_vehicle_emptying_log_share=missing_vehicle_emptying_log_share,
+            cross_tour_duplicate_assignment_share=cross_tour_duplicate_assignment_share,
         )
         day_bin_visits.extend(bin_visits)
         day_vehicle_emptyings.extend(vehicle_emptyings)

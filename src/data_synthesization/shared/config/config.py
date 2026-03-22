@@ -93,6 +93,12 @@ def load_config(path: str | Path) -> AppConfig:
                 float(tour_item_generation["VEHICLE_EMPTYING_COORDS"][1]),
             ),
             empty_after_volume=int(tour_item_generation["EMTPY_AFTER_VOLUME"]),
+            missing_vehicle_emptying_log_share=float(
+                tour_item_generation["MISSING_VEHICLE_EMPTYING_LOG_SHARE"]
+            ),
+            cross_tour_duplicate_assignment_share=float(
+                tour_item_generation["CROSS_TOUR_DUPLICATE_ASSIGNMENT_SHARE"]
+            ),
         ),
         tour_and_nfc_mapping=TourAndNfcMappingConfig(
             average_speed_meters_per_second=float(tour_and_nfc_mapping["AVERAGE_SPEED_METERS_PER_SECOND"]),

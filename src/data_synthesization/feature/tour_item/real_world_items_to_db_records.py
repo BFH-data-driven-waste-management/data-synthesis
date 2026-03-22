@@ -14,6 +14,8 @@ def map_events_to_records_for_vehicle_tours(
         vehicle_tours: list[TourRecord],
         nfc_mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
         rng: random.Random,
+        missing_vehicle_emptying_log_share: float,
+        cross_tour_duplicate_assignment_share: float,
 ) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
     bin_visit_records: list[BinVisitRecord] = []
     vehicle_emptying_records: list[VehicleEmptyingRecord] = []
@@ -28,6 +30,8 @@ def map_events_to_records_for_vehicle_tours(
             vehicle_events=vehicle_events,
             belongs_to_first_virtual_tour=belongs_to_first_virtual_tour,
             rng=rng,
+            missing_vehicle_emptying_log_share=missing_vehicle_emptying_log_share,
+            cross_tour_duplicate_assignment_share=cross_tour_duplicate_assignment_share,
             bin_visit_records=bin_visit_records,
             vehicle_emptying_records=vehicle_emptying_records,
             nfc_mappings_by_bin=nfc_mappings_by_bin,
@@ -43,6 +47,8 @@ def _map_single_tour_events_to_records(
         vehicle_events: list[RealWorldBinVisit | RealWorldVehicleEmptying],
         belongs_to_first_virtual_tour: list[int],
         rng: random.Random,
+        missing_vehicle_emptying_log_share: float,
+        cross_tour_duplicate_assignment_share: float,
         bin_visit_records: list[BinVisitRecord],
         vehicle_emptying_records: list[VehicleEmptyingRecord],
         nfc_mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
@@ -56,6 +62,7 @@ def _map_single_tour_events_to_records(
                     tour_index=tour_index,
                     belongs_to_first_virtual_tour=belongs_to_first_virtual_tour,
                     rng=rng,
+                    cross_tour_duplicate_assignment_share=cross_tour_duplicate_assignment_share,
             ):
                 _append_bin_visit_record_if_possible(
                     event=event,
@@ -69,6 +76,7 @@ def _map_single_tour_events_to_records(
                 tour=tour,
                 rng=rng,
                 vehicle_emptying_records=vehicle_emptying_records,
+                missing_vehicle_emptying_log_share=missing_vehicle_emptying_log_share,
             )
             last_vehicle_emptying_event_timestamp = event.relative_event_timestamp
 
@@ -88,13 +96,14 @@ def _event_assigned_to_current_virtual_tour(
         tour_index: int,
         belongs_to_first_virtual_tour: list[int],
         rng: random.Random,
+        cross_tour_duplicate_assignment_share: float,
 ) -> bool:
     assigned_to_first_virtual_tour = belongs_to_first_virtual_tour[event_index] == 1
     event_belongs_not_to_this_virtual_tour = (
             (assigned_to_first_virtual_tour and tour_index == 1)
             or (not assigned_to_first_virtual_tour and tour_index == 0)
     )
-    event_belongs_to_both_virtual_tour_mistakenly = rng.random() < 0.01
+    event_belongs_to_both_virtual_tour_mistakenly = rng.random() < cross_tour_duplicate_assignment_share
     return not event_belongs_not_to_this_virtual_tour or event_belongs_to_both_virtual_tour_mistakenly
 
 
@@ -135,8 +144,9 @@ def _append_vehicle_emptying_record_if_logged(
         tour: TourRecord,
         rng: random.Random,
         vehicle_emptying_records: list[VehicleEmptyingRecord],
+        missing_vehicle_emptying_log_share: float,
 ) -> None:
-    event_was_not_logged_by_virtual_tour_mistakenly = rng.random() < 0.02
+    event_was_not_logged_by_virtual_tour_mistakenly = rng.random() < missing_vehicle_emptying_log_share
     if event_was_not_logged_by_virtual_tour_mistakenly and not event.is_last_of_the_tour:
         return
 

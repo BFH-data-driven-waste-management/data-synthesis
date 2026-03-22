@@ -5,6 +5,8 @@ from dataclasses import dataclass
 class TourItemGenerationConfig:
     vehicle_emptying_coords: tuple[float, float]
     empty_after_volume: int
+    missing_vehicle_emptying_log_share: float
+    cross_tour_duplicate_assignment_share: float
 
 
 @dataclass(frozen=True)
