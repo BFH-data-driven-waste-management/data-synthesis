@@ -78,7 +78,7 @@ def _map_single_tour_events_to_records(
                 vehicle_emptying_records=vehicle_emptying_records,
                 missing_vehicle_emptying_log_share=missing_vehicle_emptying_log_share,
             )
-            last_vehicle_emptying_event_timestamp = event.relative_event_timestamp
+            last_vehicle_emptying_event_timestamp = _add_time_of_the_day_to_base_datetimes(event.relative_event_timestamp,tour.started_at)
 
     return last_vehicle_emptying_event_timestamp
 
