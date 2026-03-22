@@ -1,7 +1,7 @@
 from collections import defaultdict
 from datetime import date, datetime, time, timezone
 
-from data_synthesization.feature.tour_item.types import BinVisitEvent, VehicleEmptyingEvent
+from data_synthesization.feature.tour_item.types import RealWorldBinVisit, RealWorldVehicleEmptying
 from data_synthesization.shared.domain.models import TourRecord, NfcTagMappingRecord, BinActivityRecord, BinRecord
 
 
@@ -39,9 +39,9 @@ def _group_activities_by_bin(bin_activities: list[BinActivityRecord]) -> dict[in
 
 
 def _group_events_by_vehicle(
-        events: list[BinVisitEvent | VehicleEmptyingEvent],
-) -> dict[int, list[BinVisitEvent | VehicleEmptyingEvent]]:
-    events_by_vehicle: dict[int, list[BinVisitEvent | VehicleEmptyingEvent]] = defaultdict(list)
+        events: list[RealWorldBinVisit | RealWorldVehicleEmptying],
+) -> dict[int, list[RealWorldBinVisit | RealWorldVehicleEmptying]]:
+    events_by_vehicle: dict[int, list[RealWorldBinVisit | RealWorldVehicleEmptying]] = defaultdict(list)
     for event in events:
         events_by_vehicle[event.vehicle_number].append(event)
     return events_by_vehicle

@@ -2,13 +2,13 @@ import random
 from datetime import datetime
 from uuid import uuid4
 
-from data_synthesization.feature.tour_item.types import BinVisitEvent, VehicleEmptyingEvent
+from data_synthesization.feature.tour_item.types import RealWorldBinVisit, RealWorldVehicleEmptying
 from data_synthesization.shared.domain.enums import ConnectivityState
 from data_synthesization.shared.domain.models import BinVisitRecord, TourRecord, VehicleEmptyingRecord
 
 
 def map_events_to_records_for_vehicle_tours(
-        vehicle_events: list[BinVisitEvent | VehicleEmptyingEvent],
+        vehicle_events: list[RealWorldBinVisit | RealWorldVehicleEmptying],
         vehicle_tours: list[TourRecord],
         rng: random.Random,
 ) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
@@ -36,7 +36,7 @@ def map_events_to_records_for_vehicle_tours(
 def _map_single_tour_events_to_records(
         tour_index: int,
         tour: TourRecord,
-        vehicle_events: list[BinVisitEvent | VehicleEmptyingEvent],
+        vehicle_events: list[RealWorldBinVisit | RealWorldVehicleEmptying],
         belongs_to_first_virtual_tour: list[int],
         rng: random.Random,
         bin_visit_records: list[BinVisitRecord],
@@ -45,7 +45,7 @@ def _map_single_tour_events_to_records(
     last_vehicle_emptying_event_timestamp: datetime | None = None
 
     for event_index, event in enumerate(vehicle_events):
-        if isinstance(event, BinVisitEvent):
+        if isinstance(event, RealWorldBinVisit):
             if _event_assigned_to_current_virtual_tour(
                     event_index=event_index,
                     tour_index=tour_index,
@@ -72,8 +72,7 @@ def _map_single_tour_events_to_records(
 def _build_virtual_tour_assignments(number_of_events: int, rng: random.Random) -> list[int]:
     number_scanned_by_first_virtual_tour = rng.randint(0, number_of_events)
     number_scanned_by_second_virtual_tour = number_of_events - number_scanned_by_first_virtual_tour
-    belongs_to_first_virtual_tour = [1] * number_scanned_by_first_virtual_tour + [
-        0] * number_scanned_by_second_virtual_tour
+    belongs_to_first_virtual_tour = [1] * number_scanned_by_first_virtual_tour + [0] * number_scanned_by_second_virtual_tour
     rng.shuffle(belongs_to_first_virtual_tour)
     return belongs_to_first_virtual_tour
 
@@ -94,13 +93,10 @@ def _event_assigned_to_current_virtual_tour(
 
 
 def _append_bin_visit_record_if_possible(
-        event: BinVisitEvent,
+        event: RealWorldBinVisit,
         tour: TourRecord,
         bin_visit_records: list[BinVisitRecord],
 ) -> None:
-    if event.nfc_tag_mapping_id is None:
-        return
-
     bin_visit_records.append(
         BinVisitRecord(
             client_event_id=str(uuid4()),
@@ -117,7 +113,7 @@ def _append_bin_visit_record_if_possible(
 
 def _append_vehicle_emptying_record_if_logged(
         *,
-        event: VehicleEmptyingEvent,
+        event: RealWorldVehicleEmptying,
         tour: TourRecord,
         rng: random.Random,
         vehicle_emptying_records: list[VehicleEmptyingRecord],

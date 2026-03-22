@@ -2,9 +2,9 @@ import random
 from dataclasses import dataclass
 from datetime import date, datetime
 
-from data_synthesization.feature.tour_item.events_generation import generate_day_events, EventGenerationContext
-from data_synthesization.feature.tour_item.record_mapping import map_events_to_records_for_vehicle_tours
-from data_synthesization.feature.tour_item.types import BinVisitEvent, VehicleEmptyingEvent
+from data_synthesization.feature.tour_item.real_world_items_generation import generate_day_events, EventGenerationContext
+from data_synthesization.feature.tour_item.real_world_items_to_db_records import map_events_to_records_for_vehicle_tours
+from data_synthesization.feature.tour_item.types import RealWorldBinVisit, RealWorldVehicleEmptying
 from data_synthesization.feature.tour_item.util import _group_tours_by_vehicle_and_day, _group_nfc_mappings_by_bin, \
     _group_activities_by_bin, _group_events_by_vehicle, _active_bins_for_day
 from data_synthesization.feature.tour_item.fill_level.latent_fill_level_simulator import LatentFillLevelSimulator
@@ -112,7 +112,7 @@ def _generate_day_events(
         seconds_per_bin_visit: int,
         seconds_per_vehicle_emptying: int,
         nfc_mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
-) -> list[BinVisitEvent | VehicleEmptyingEvent]:
+) -> list[RealWorldBinVisit | RealWorldVehicleEmptying]:
     active_bins_by_id = _active_bins_for_day(
         day=day,
         bins_by_id=bins_by_id,
@@ -140,7 +140,7 @@ def _generate_day_events(
 
 def _generate_records_for_day(
         day: date,
-        events: list[BinVisitEvent | VehicleEmptyingEvent],
+        events: list[RealWorldBinVisit | RealWorldVehicleEmptying],
         tours_by_vehicle_day: dict[tuple[int, date], list[TourRecord]],
         rng: random.Random,
 ) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:

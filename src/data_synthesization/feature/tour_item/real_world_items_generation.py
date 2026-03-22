@@ -5,7 +5,7 @@ from data_synthesization.feature.tour_item.active_nfc_mapping.find_active_mappin
 from data_synthesization.feature.tour_item.schedule.choose_active_areas import areas_for_vehicle_day
 from data_synthesization.feature.tour_item.schedule.estimate_travel_time import event_timestamps_for_next_stop
 from data_synthesization.feature.tour_item.schedule.route_to_nearest_bin import nearest_bin_order
-from data_synthesization.feature.tour_item.types import BinVisitEvent, VehicleEmptyingEvent
+from data_synthesization.feature.tour_item.types import RealWorldBinVisit, RealWorldVehicleEmptying
 from data_synthesization.feature.tour_item.fill_level.latent_fill_level_simulator import LatentFillLevelSimulator
 from data_synthesization.shared.config.config_model.schedule_config import VehicleSchedule, SeasonBounds
 from data_synthesization.shared.domain.models import BinRecord, NfcTagMappingRecord
@@ -33,13 +33,16 @@ class EventGenerationContext:
     seconds_per_bin_visit: int
     seconds_per_vehicle_emptying: int
 
-
+"""
+generation of the real world events for a day.
+data model specific aspects such as two operators who both log vehicle_emptying but only one of them logs bin_visits are not considered here.
+"""
 def generate_day_events(
     day: date,
     vehicles_schedules: list[VehicleSchedule],
     context: EventGenerationContext,
-) -> list[BinVisitEvent | VehicleEmptyingEvent]:
-    events: list[BinVisitEvent | VehicleEmptyingEvent] = []
+) -> list[RealWorldBinVisit | RealWorldVehicleEmptying]:
+    events: list[RealWorldBinVisit | RealWorldVehicleEmptying] = []
 
     for vehicle_schedule in vehicles_schedules:
         areas = areas_for_vehicle_day(vehicle_schedule, day, context.seasons)
@@ -101,7 +104,7 @@ def _append_visit_and_update_state(
     area: str,
     _bin: BinRecord,
     context: EventGenerationContext,
-    events: list[BinVisitEvent | VehicleEmptyingEvent],
+    events: list[RealWorldBinVisit | RealWorldVehicleEmptying],
     state: _VehicleDayState,
 ) -> None:
 
@@ -122,8 +125,17 @@ def _append_visit_and_update_state(
         average_speed_meters_per_second=context.average_speed_meters_per_second,
     )
 
+    nfc_tag_mapping_id = find_mapping_for_bin_visit_day(
+        exact_time=event_timestamp,
+        bin_id=_bin.id,
+        mappings_by_bin=context.mappings_by_bin,
+    )
+
+    if nfc_tag_mapping_id is None:
+        return
+
     events.append(
-        BinVisitEvent(
+        RealWorldBinVisit(
             day=day,
             vehicle_number=vehicle_number,
             area=area,
@@ -134,11 +146,7 @@ def _append_visit_and_update_state(
             coord_y=_bin.coord_y,
             event_timestamp=event_timestamp,
             received_timestamp=received_timestamp,
-            nfc_tag_mapping_id=find_mapping_for_bin_visit_day(
-                exact_time=event_timestamp,
-                bin_id=_bin.id,
-                mappings_by_bin=context.mappings_by_bin,
-            ),
+            nfc_tag_mapping_id=nfc_tag_mapping_id,
         )
     )
 
@@ -152,7 +160,7 @@ def _append_visit_and_update_state(
 def _append_emptying_and_reset_state(
     day: date,
     vehicle_number: int,
-    events: list[BinVisitEvent | VehicleEmptyingEvent],
+    events: list[RealWorldBinVisit | RealWorldVehicleEmptying],
     state: _VehicleDayState,
     context: EventGenerationContext,
 ) -> None:
@@ -167,7 +175,7 @@ def _append_emptying_and_reset_state(
         average_speed_meters_per_second=context.average_speed_meters_per_second,
     )
     events.append(
-        VehicleEmptyingEvent(
+        RealWorldVehicleEmptying(
             day=day,
             vehicle_number=vehicle_number,
             coord_x=context.vehicle_emptying_coords[0],

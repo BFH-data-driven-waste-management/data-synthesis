@@ -5,7 +5,7 @@ from data_synthesization.shared.domain.enums import FillLevel, VisitAction
 
 
 @dataclass(frozen=True)
-class BinVisitEvent:
+class RealWorldBinVisit:
     day: date
     vehicle_number: int
     area: str
@@ -20,7 +20,7 @@ class BinVisitEvent:
 
 
 @dataclass(frozen=True)
-class VehicleEmptyingEvent:
+class RealWorldVehicleEmptying:
     day: date
     vehicle_number: int
     coord_x: float
