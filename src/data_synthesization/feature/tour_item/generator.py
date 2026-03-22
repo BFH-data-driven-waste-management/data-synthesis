@@ -68,6 +68,10 @@ def generate_tour_item_records(
             vehicle_emptying_coords=config.tour_item_generation.vehicle_emptying_coords,
             empty_after_volume=config.tour_item_generation.empty_after_volume,
             latent_filllevel_simulator=latent_filllevel_simulator,
+            average_speed_meters_per_second=config.tour_and_nfc_mapping.average_speed_meters_per_second,
+            road_network_detour_factor=config.tour_and_nfc_mapping.road_network_detour_factor,
+            seconds_per_bin_visit=config.tour_and_nfc_mapping.seconds_per_bin_visit,
+            seconds_per_vehicle_emptying=config.tour_and_nfc_mapping.seconds_per_vehicle_emptying,
         )
 
         day_bin_visits, day_vehicle_emptyings, last_vehicle_emptying_per_tour_per_day = _generate_records_for_day(
@@ -76,11 +80,6 @@ def generate_tour_item_records(
             tours_by_vehicle_day=tours_by_vehicle_day,
             nfc_mappings_by_bin=nfc_mappings_by_bin,
             rng=rng,
-            vehicle_emptying_coords=config.tour_item_generation.vehicle_emptying_coords,
-            average_speed_meters_per_second=config.tour_and_nfc_mapping.average_speed_meters_per_second,
-            road_network_detour_factor=config.tour_and_nfc_mapping.road_network_detour_factor,
-            seconds_per_bin_visit=config.tour_and_nfc_mapping.seconds_per_bin_visit,
-            seconds_per_vehicle_emptying=config.tour_and_nfc_mapping.seconds_per_vehicle_emptying
         )
         bin_visit_records.extend(day_bin_visits)
         vehicle_emptying_records.extend(day_vehicle_emptyings)
@@ -108,6 +107,10 @@ def _generate_day_events(
         vehicle_emptying_coords: tuple[float, float],
         empty_after_volume: int,
         latent_filllevel_simulator: LatentFillLevelSimulator,
+        average_speed_meters_per_second: float,
+        road_network_detour_factor: float,
+        seconds_per_bin_visit: int,
+        seconds_per_vehicle_emptying: int,
 ) -> list[BinVisitEvent | VehicleEmptyingEvent]:
     active_bins_by_id = _active_bins_for_day(
         day=day,
@@ -123,6 +126,10 @@ def _generate_day_events(
         vehicle_emptying_coords=vehicle_emptying_coords,
         empty_after_volume=empty_after_volume,
         latent_fill_level_simulator=latent_filllevel_simulator,
+        average_speed_meters_per_second=average_speed_meters_per_second,
+        road_network_detour_factor=road_network_detour_factor,
+        seconds_per_bin_visit=seconds_per_bin_visit,
+        seconds_per_vehicle_emptying=seconds_per_vehicle_emptying,
     )
 
 
@@ -132,11 +139,6 @@ def _generate_records_for_day(
         tours_by_vehicle_day: dict[tuple[int, date], list[TourRecord]],
         nfc_mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
         rng: random.Random,
-        vehicle_emptying_coords: tuple[float, float],
-        average_speed_meters_per_second: float,
-        road_network_detour_factor: float,
-        seconds_per_bin_visit: int,
-        seconds_per_vehicle_emptying: int
 ) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
     day_bin_visits: list[BinVisitRecord] = []
     day_vehicle_emptyings: list[VehicleEmptyingRecord] = []
@@ -151,11 +153,6 @@ def _generate_records_for_day(
             vehicle_tours=vehicle_tours,
             mappings_by_bin=nfc_mappings_by_bin,
             rng=rng,
-            vehicle_emptying_coords=vehicle_emptying_coords,
-            average_speed_meters_per_second=average_speed_meters_per_second,
-            road_network_detour_factor=road_network_detour_factor,
-            seconds_per_bin_visit=seconds_per_bin_visit,
-            seconds_per_vehicle_emptying=seconds_per_vehicle_emptying
         )
         day_bin_visits.extend(bin_visits)
         day_vehicle_emptyings.extend(vehicle_emptyings)

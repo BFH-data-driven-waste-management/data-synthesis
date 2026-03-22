@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 
 from data_synthesization.shared.domain.enums import FillLevel, VisitAction
 
@@ -14,6 +14,8 @@ class BinVisitEvent:
     bin_id: int
     coord_x: float
     coord_y: float
+    event_timestamp: datetime
+    received_timestamp: datetime
 
 
 @dataclass(frozen=True)
@@ -22,3 +24,5 @@ class VehicleEmptyingEvent:
     vehicle_number: int
     coord_x: float
     coord_y: float
+    event_timestamp: datetime
+    received_timestamp: datetime

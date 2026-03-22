@@ -1,6 +1,5 @@
 import random
-from datetime import datetime, timedelta, timezone
-from math import hypot
+from datetime import datetime
 from uuid import uuid4
 
 from data_synthesization.feature.tour_item.active_nfc_mapping.find_active_mapping import find_mapping_for_bin_visit_day
@@ -15,11 +14,6 @@ def map_events_to_records_for_vehicle_tours(
         vehicle_tours: list[TourRecord],
         mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
         rng: random.Random,
-        vehicle_emptying_coords: tuple[float, float],
-        average_speed_meters_per_second: float,
-        road_network_detour_factor: float,
-        seconds_per_bin_visit: int,
-        seconds_per_vehicle_emptying: int
 ) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
     bin_visit_records: list[BinVisitRecord] = []
     vehicle_emptying_records: list[VehicleEmptyingRecord] = []
@@ -37,11 +31,6 @@ def map_events_to_records_for_vehicle_tours(
             rng=rng,
             bin_visit_records=bin_visit_records,
             vehicle_emptying_records=vehicle_emptying_records,
-            vehicle_emptying_coords=vehicle_emptying_coords,
-            average_speed_meters_per_second=average_speed_meters_per_second,
-            road_network_detour_factor=road_network_detour_factor,
-            seconds_per_bin_visit=seconds_per_bin_visit,
-            seconds_per_vehicle_emptying=seconds_per_vehicle_emptying
         )
         last_vehicle_emptying_per_tour[tour.id] = last_vehicle_emptying_at
 
@@ -57,30 +46,10 @@ def _map_single_tour_events_to_records(
         rng: random.Random,
         bin_visit_records: list[BinVisitRecord],
         vehicle_emptying_records: list[VehicleEmptyingRecord],
-        vehicle_emptying_coords: tuple[float, float],
-        average_speed_meters_per_second: float,
-        road_network_detour_factor: float,
-        seconds_per_bin_visit: int,
-        seconds_per_vehicle_emptying: int
 ) -> datetime:
-    current_x, current_y = vehicle_emptying_coords
-    current_timestamp = tour.started_at.astimezone(timezone.utc)
-
     last_vehicle_emptying_event_timestamp: datetime | None = None
 
     for event_index, event in enumerate(vehicle_events):
-        event_timestamp = _event_timestamp_for_next_stop(
-            current_x=current_x,
-            current_y=current_y,
-            current_timestamp=current_timestamp,
-            event=event,
-            seconds_per_bin_visit=seconds_per_bin_visit,
-            seconds_per_vehicle_emptying=seconds_per_vehicle_emptying,
-            road_network_detour_factor=road_network_detour_factor,
-            average_speed_meters_per_second=average_speed_meters_per_second,
-        )
-        current_timestamp = event_timestamp
-
         if isinstance(event, BinVisitEvent):
             if _event_assigned_to_current_virtual_tour(
                     event_index=event_index,
@@ -90,7 +59,6 @@ def _map_single_tour_events_to_records(
             ):
                 _append_bin_visit_record_if_possible(
                     event=event,
-                    event_timestamp=event_timestamp,
                     tour=tour,
                     mappings_by_bin=mappings_by_bin,
                     bin_visit_records=bin_visit_records
@@ -98,30 +66,13 @@ def _map_single_tour_events_to_records(
         else:
             _append_vehicle_emptying_record_if_logged(
                 event=event,
-                event_timestamp=event_timestamp,
                 tour=tour,
                 rng=rng,
                 vehicle_emptying_records=vehicle_emptying_records,
             )
-            last_vehicle_emptying_event_timestamp = event_timestamp
-
-        current_x = event.coord_x
-        current_y = event.coord_y
+            last_vehicle_emptying_event_timestamp = event.event_timestamp
 
     return last_vehicle_emptying_event_timestamp
-
-
-def _estimate_travel_seconds(
-        start_x: float,
-        start_y: float,
-        target_x: float,
-        target_y: float,
-        road_network_detour_factor: float,
-        average_speed_meters_per_second: float,
-) -> int:
-    direct_distance_meters = hypot(target_x - start_x, target_y - start_y)
-    network_distance_meters = direct_distance_meters * road_network_detour_factor
-    return max(1, int(network_distance_meters / average_speed_meters_per_second))
 
 
 def _build_virtual_tour_assignments(number_of_events: int, rng: random.Random) -> list[int]:
@@ -131,28 +82,6 @@ def _build_virtual_tour_assignments(number_of_events: int, rng: random.Random) -
         0] * number_scanned_by_second_virtual_tour
     rng.shuffle(belongs_to_first_virtual_tour)
     return belongs_to_first_virtual_tour
-
-
-def _event_timestamp_for_next_stop(
-        current_x: float,
-        current_y: float,
-        current_timestamp: datetime,
-        event: BinVisitEvent | VehicleEmptyingEvent,
-        seconds_per_bin_visit: int,
-        seconds_per_vehicle_emptying: int,
-        road_network_detour_factor: float,
-        average_speed_meters_per_second: float,
-) -> datetime:
-    travel_seconds = _estimate_travel_seconds(
-        start_x=current_x,
-        start_y=current_y,
-        target_x=event.coord_x,
-        target_y=event.coord_y,
-        road_network_detour_factor=road_network_detour_factor,
-        average_speed_meters_per_second=average_speed_meters_per_second,
-    )
-    event_seconds = seconds_per_bin_visit if isinstance(event, BinVisitEvent) else seconds_per_vehicle_emptying
-    return current_timestamp + timedelta(seconds=travel_seconds + event_seconds)
 
 
 def _event_assigned_to_current_virtual_tour(
@@ -172,13 +101,12 @@ def _event_assigned_to_current_virtual_tour(
 
 def _append_bin_visit_record_if_possible(
         event: BinVisitEvent,
-        event_timestamp: datetime,
         tour: TourRecord,
         mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
         bin_visit_records: list[BinVisitRecord],
 ) -> None:
     nfc_tag_mapping_id = find_mapping_for_bin_visit_day(
-        exact_time=event_timestamp,
+        exact_time=event.event_timestamp,
         bin_id=event.bin_id,
         mappings_by_bin=mappings_by_bin,
     )
@@ -188,8 +116,8 @@ def _append_bin_visit_record_if_possible(
     bin_visit_records.append(
         BinVisitRecord(
             client_event_id=str(uuid4()),
-            event_timestamp=event_timestamp,
-            received_timestamp=event_timestamp + timedelta(seconds=1),
+            event_timestamp=event.event_timestamp,
+            received_timestamp=event.received_timestamp,
             connectivity_state=ConnectivityState.ONLINE,
             fill_level=event.fill_level,
             action=event.action,
@@ -202,7 +130,6 @@ def _append_bin_visit_record_if_possible(
 def _append_vehicle_emptying_record_if_logged(
         *,
         event: VehicleEmptyingEvent,
-        event_timestamp: datetime,
         tour: TourRecord,
         rng: random.Random,
         vehicle_emptying_records: list[VehicleEmptyingRecord],
@@ -214,8 +141,8 @@ def _append_vehicle_emptying_record_if_logged(
     vehicle_emptying_records.append(
         VehicleEmptyingRecord(
             client_event_id=str(uuid4()),
-            event_timestamp=event_timestamp,
-            received_timestamp=event_timestamp + timedelta(seconds=1),
+            event_timestamp=event.event_timestamp,
+            received_timestamp=event.received_timestamp,
             connectivity_state=ConnectivityState.ONLINE,
             tour_id=tour.id,
         )
