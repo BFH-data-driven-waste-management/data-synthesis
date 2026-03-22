@@ -31,39 +31,39 @@ latent_filllevel:
     max: 1.15
 
   zone_base_fill_rate_ratio_per_day:
-    robertwalser: 0.30
-    innenstadt: 0.30
-    innenstadtWest: 0.24
-    innenstadtost: 0.24
-    innenstadtNord: 0.22
-    altstadt: 0.24
-    seequartiere: 0.20
-    moesli: 0.12
-    madretsch: 0.14
-    linde: 0.12
-    muehlefeld: 0.10
-    vingelz: 0.10
-    beaumont: 0.12
-    gurzelen: 0.12
-    mettSud: 0.12
-    mettNord: 0.10
-    boezingen: 0.12
-    boezingenNord: 0.10
-    sportAnlagen: 0.16
-    boezingenfeld: 0.10
-    ipsach: 0.16
-    default: 0.12
+    robertwalser: 0.35
+    innenstadt: 0.35
+    innenstadtWest: 0.29
+    innenstadtost: 0.29
+    innenstadtNord: 0.27
+    altstadt: 0.29
+    seequartiere: 0.25
+    moesli: 0.17
+    madretsch: 0.19
+    linde: 0.17
+    muehlefeld: 0.15
+    vingelz: 0.15
+    beaumont: 0.17
+    gurzelen: 0.17
+    mettSud: 0.17
+    mettNord: 0.15
+    boezingen: 0.17
+    boezingenNord: 0.15
+    sportAnlagen: 0.21
+    boezingenfeld: 0.15
+    ipsach: 0.21
+    default: 0.17
 
   zone_base_fill_rate_ratio_per_day_weekday_overrides:
     sportAnlagen:
-      saturday: 0.30
-      sunday: 0.30
+      saturday: 0.35
+      sunday: 0.35
     seequartiere:
-      monday: 0.25
-      tuesday: 0.25
-      wednesday: 0.25
-      thursday: 0.25
-      friday: 0.25
+      monday: 0.30
+      tuesday: 0.30
+      wednesday: 0.30
+      thursday: 0.30
+      friday: 0.30
 
   event_effects:
     enabled: true
