@@ -13,6 +13,7 @@ from data_synthesization.shared.db.connection import connect
 from data_synthesization.shared.db.reader import read_bin_activities, read_bins, read_nfc_tag_mappings, read_tours
 from data_synthesization.shared.db.writer import insert_bin_visits, insert_vehicle_emptyings, update_tours_ended_at
 from data_synthesization.shared.logging import log_tour_item_stats
+from data_synthesization.validation.tour_item_checks import validate_tour_items_end_with_vehicle_emptying
 
 SCHEDULE_PATH = Path("config/schedule.yaml")
 LATENT_FILLLEVEL_PATH = Path("config/latent_filllevel.yaml")
@@ -52,6 +53,12 @@ def run_generate_tour_items(config_path: str) -> None:
             nfc_tag_mappings=nfc_tag_mappings,
             rng=rng,
             latent_filllevel_simulator=latent_filllevel_simulator,
+        )
+
+        validate_tour_items_end_with_vehicle_emptying(
+            tours=tours,
+            bin_visit_records=result.bin_visit_records,
+            vehicle_emptying_records=result.vehicle_emptying_records,
         )
 
         insert_bin_visits(connection, result.bin_visit_records)
