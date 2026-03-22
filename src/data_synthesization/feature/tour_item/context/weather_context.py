@@ -1,15 +1,19 @@
 import csv
-from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
 
+from data_synthesization.feature.tour_item.context.models import DailyWeatherContext
 
-@dataclass(frozen=True)
-class DailyWeatherContext:
-    temp_mean: float
-    temp_max: float
-    precipitation: float
-    sunshine_duration: float
+DEFAULT_WEATHER_FILE_PATTERN = "data/static/historical_weater_neuchatle_*.csv"
+
+
+def load_weather_context(weather_pattern: str = DEFAULT_WEATHER_FILE_PATTERN) -> dict[date, DailyWeatherContext]:
+    weather_path = resolve_latest_weather_file(weather_pattern)
+    return load_daily_weather_context(weather_path)
+
+
+def resolve_weather_path(weather_pattern: str = DEFAULT_WEATHER_FILE_PATTERN) -> Path:
+    return resolve_latest_weather_file(weather_pattern)
 
 
 def load_daily_weather_context(path: str | Path) -> dict[date, DailyWeatherContext]:

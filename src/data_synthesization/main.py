@@ -1,7 +1,7 @@
 import argparse
 
-from data_synthesization.pipelines.generate_bin_activity import run_generate_bin_activity
-from data_synthesization.pipelines.generate_nfc_tag_mapping import run_generate_nfc_tag_mapping
+from data_synthesization.pipelines.generate_bin_activities import run_generate_bin_activity
+from data_synthesization.pipelines.generate_nfc_tag_mappings import run_generate_nfc_tag_mapping
 from data_synthesization.pipelines.generate_tour_items import run_generate_tour_items
 from data_synthesization.pipelines.generate_tours import run_generate_tours
 

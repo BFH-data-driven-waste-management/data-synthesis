@@ -1,6 +1,7 @@
 from data_synthesization.feature.bin_visit.generator import BinActivityStats
 from data_synthesization.feature.nfc_tag_mapping.generator import NfcTagMappingGenerationStats
 from data_synthesization.feature.tour.generator import TourGenerationStats
+from data_synthesization.feature.tour_item.generator import TourItemGenerationStats
 
 
 def log_bin_activity_stats(stats: BinActivityStats) -> None:
@@ -16,3 +17,8 @@ def log_nfc_tag_mapping_stats(stats: NfcTagMappingGenerationStats):
 def log_tour_stats(stats: TourGenerationStats):
     print(f"Generated tour rows: {stats.generated_rows}")
     print(f"Generation days: {stats.generated_days}")
+
+
+def log_tour_item_stats(stats: TourItemGenerationStats):
+    print(f"Generated bin_visit rows: {stats.bin_visit_records}")
+    print(f"Generated vehicle_emptying rows: {stats.vehicle_emptying_records}")

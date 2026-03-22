@@ -3,14 +3,52 @@ from datetime import datetime, timedelta, timezone
 from math import hypot
 from uuid import uuid4
 
+from data_synthesization.feature.tour_item.types import BinVisitEvent, VehicleEmptyingEvent
+from data_synthesization.generation.latent_filllevel_simulator import LatentFillLevelSimulator
 from data_synthesization.shared.domain.enums import ConnectivityState
 from data_synthesization.shared.domain.models import BinVisitRecord, NfcTagMappingRecord, TourRecord, VehicleEmptyingRecord
-from data_synthesization.generation.latent_filllevel_simulator import LatentFillLevelSimulator
-from data_synthesization.generation.tour_item_generator import BinVisitEvent, VehicleEmptyingEvent
 
-"""
-helper function to estimate the travel time between two coordinates based on euclidean distance and average speed with the use of a detour factor.
-"""
+
+def map_events_to_records_for_vehicle_tours(
+    vehicle_events: list[BinVisitEvent | VehicleEmptyingEvent],
+    vehicle_tours: list[TourRecord],
+    mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
+    rng: random.Random,
+    vehicle_emptying_coords: tuple[float, float],
+    average_speed_meters_per_second: float,
+    road_network_detour_factor: float,
+    seconds_per_bin_visit: int,
+    seconds_per_vehicle_emptying: int,
+    latent_filllevel_simulator: LatentFillLevelSimulator,
+) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
+    bin_visit_records: list[BinVisitRecord] = []
+    vehicle_emptying_records: list[VehicleEmptyingRecord] = []
+
+    belongs_to_first_virtual_tour = _build_virtual_tour_assignments(len(vehicle_events), rng)
+    last_vehicle_emptying_per_tour: dict[int, datetime] = {}
+
+    for tour_index, tour in enumerate(vehicle_tours):
+        last_vehicle_emptying_at = _map_single_tour_events_to_records(
+            tour_index=tour_index,
+            tour=tour,
+            vehicle_events=vehicle_events,
+            belongs_to_first_virtual_tour=belongs_to_first_virtual_tour,
+            mappings_by_bin=mappings_by_bin,
+            rng=rng,
+            bin_visit_records=bin_visit_records,
+            vehicle_emptying_records=vehicle_emptying_records,
+            vehicle_emptying_coords=vehicle_emptying_coords,
+            average_speed_meters_per_second=average_speed_meters_per_second,
+            road_network_detour_factor=road_network_detour_factor,
+            seconds_per_bin_visit=seconds_per_bin_visit,
+            seconds_per_vehicle_emptying=seconds_per_vehicle_emptying,
+            latent_filllevel_simulator=latent_filllevel_simulator,
+        )
+        last_vehicle_emptying_per_tour[tour.id] = last_vehicle_emptying_at
+
+    return bin_visit_records, vehicle_emptying_records, last_vehicle_emptying_per_tour
+
+
 def _estimate_travel_seconds(
     start_x: float,
     start_y: float,
@@ -23,10 +61,7 @@ def _estimate_travel_seconds(
     network_distance_meters = direct_distance_meters * road_network_detour_factor
     return max(1, int(network_distance_meters / average_speed_meters_per_second))
 
-"""
-find the nfc tag mapping for a given day and bin. 
-(the last mapping which was active before `exact_time`)
-"""
+
 def _find_mapping_for_bin_visit_day(
     exact_time: datetime,
     bin_id: int,
@@ -37,12 +72,7 @@ def _find_mapping_for_bin_visit_day(
             return mapping.id
     return None
 
-"""
-Note: 
-- this function is must be refactored for more the 2 virtual tours (if more than 2 crew members per vehicle are used)
-- this function considers all events - including vehicle emptying - to create a random assignment of events to virtual tours.
-    - since vehicle emptyings are supposed to be logged by both virtual tours anyways, their assignment in this function is just ignored.
-"""
+
 def _build_virtual_tour_assignments(number_of_events: int, rng: random.Random) -> list[int]:
     number_scanned_by_first_virtual_tour = rng.randint(0, number_of_events)
     number_scanned_by_second_virtual_tour = number_of_events - number_scanned_by_first_virtual_tour
@@ -50,10 +80,7 @@ def _build_virtual_tour_assignments(number_of_events: int, rng: random.Random) -
     rng.shuffle(belongs_to_first_virtual_tour)
     return belongs_to_first_virtual_tour
 
-"""
-helper function to calculate the next timestamp for a given event.
-append the estimated travel time and the time for handling the event (e.g. emptying a bin)
-"""
+
 def _event_timestamp_for_next_stop(
     current_x: float,
     current_y: float,
@@ -75,10 +102,7 @@ def _event_timestamp_for_next_stop(
     event_seconds = seconds_per_bin_visit if isinstance(event, BinVisitEvent) else seconds_per_vehicle_emptying
     return current_timestamp + timedelta(seconds=travel_seconds + event_seconds)
 
-"""
-helper to determine if an event belongs to the current virtual tour.
-should only be called for bin_visits.
-"""
+
 def _event_assigned_to_current_virtual_tour(
     event_index: int,
     tour_index: int,
@@ -93,9 +117,7 @@ def _event_assigned_to_current_virtual_tour(
     event_belongs_to_both_virtual_tour_mistakenly = rng.random() < 0.01
     return not event_belongs_not_to_this_virtual_tour or event_belongs_to_both_virtual_tour_mistakenly
 
-"""
-create actually database record under consideration of the correct (at this time mapped) nfc tag and the correct tour (this vehicle, this day)
-"""
+
 def _append_bin_visit_record_if_possible(
     event: BinVisitEvent,
     event_timestamp: datetime,
@@ -131,9 +153,7 @@ def _append_bin_visit_record_if_possible(
         )
     )
 
-"""
-create actually database record under consideration of the correct tour (this vehicle, this day) and sync-attributes.
-"""
+
 def _append_vehicle_emptying_record_if_logged(
     *,
     event: VehicleEmptyingEvent,
@@ -156,11 +176,7 @@ def _append_vehicle_emptying_record_if_logged(
         )
     )
 
-"""
-maps events of a *single virtual tour* to database records.
-for each event the next timestamp is calculated and the event is appended to the correct list of records.
-=> returns the timestamp of the last vehicle_emptying event for later tour closing.
-"""
+
 def _map_single_tour_events_to_records(
     tour_index: int,
     tour: TourRecord,
@@ -224,51 +240,3 @@ def _map_single_tour_events_to_records(
         current_y = event.coord_y
 
     return last_vehicle_emptying_event_timestamp
-
-"""
-central function to map synthetic events to database records for a given vehicle.
-loops over the virtual tours of the vehicle.
-
-returns a tuple of:
-- list of bin_visit records
-- list of vehicle_emptying records
-- dict of last vehicle_emptying event timestamp for each virtual tour
-"""
-def map_events_to_records_for_vehicle_tours(
-    vehicle_events: list[BinVisitEvent | VehicleEmptyingEvent],
-    vehicle_tours: list[TourRecord],
-    mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
-    rng: random.Random,
-    vehicle_emptying_coords: tuple[float, float],
-    average_speed_meters_per_second: float,
-    road_network_detour_factor: float,
-    seconds_per_bin_visit: int,
-    seconds_per_vehicle_emptying: int,
-    latent_filllevel_simulator: LatentFillLevelSimulator,
-) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
-    bin_visit_records: list[BinVisitRecord] = []
-    vehicle_emptying_records: list[VehicleEmptyingRecord] = []
-
-    belongs_to_first_virtual_tour = _build_virtual_tour_assignments(len(vehicle_events), rng)
-    last_vehicle_emptying_per_tour: dict[int, datetime] = {}
-
-    for tour_index, tour in enumerate(vehicle_tours):
-        last_vehicle_emptying_at = _map_single_tour_events_to_records(
-            tour_index=tour_index,
-            tour=tour,
-            vehicle_events=vehicle_events,
-            belongs_to_first_virtual_tour=belongs_to_first_virtual_tour,
-            mappings_by_bin=mappings_by_bin,
-            rng=rng,
-            bin_visit_records=bin_visit_records,
-            vehicle_emptying_records=vehicle_emptying_records,
-            vehicle_emptying_coords=vehicle_emptying_coords,
-            average_speed_meters_per_second=average_speed_meters_per_second,
-            road_network_detour_factor=road_network_detour_factor,
-            seconds_per_bin_visit=seconds_per_bin_visit,
-            seconds_per_vehicle_emptying=seconds_per_vehicle_emptying,
-            latent_filllevel_simulator=latent_filllevel_simulator,
-        )
-        last_vehicle_emptying_per_tour[tour.id] = last_vehicle_emptying_at
-
-    return bin_visit_records, vehicle_emptying_records, last_vehicle_emptying_per_tour

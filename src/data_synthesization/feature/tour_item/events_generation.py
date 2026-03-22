@@ -1,30 +1,12 @@
-import csv
 from dataclasses import dataclass
 from datetime import date
 from math import hypot
-from pathlib import Path
 
-from data_synthesization.shared.domain.models import BinRecord
+from data_synthesization.feature.tour_item.types import BinVisitEvent, VehicleEmptyingEvent
 from data_synthesization.generation.latent_filllevel_simulator import LatentFillLevelSimulator
-from data_synthesization.shared.utils.schedule import VehicleSchedule, areas_for_vehicle_day
-
-
-@dataclass(frozen=True)
-class BinVisitEvent:
-    day: date
-    vehicle_number: int
-    area: str
-    bin_id: int
-    coord_x: float
-    coord_y: float
-
-
-@dataclass(frozen=True)
-class VehicleEmptyingEvent:
-    day: date
-    vehicle_number: int
-    coord_x: float
-    coord_y: float
+from data_synthesization.shared.config.config_model.schedule_config import VehicleSchedule, SeasonBounds, Rule, \
+    Frequency
+from data_synthesization.shared.domain.models import BinRecord
 
 
 @dataclass
@@ -34,20 +16,35 @@ class _VehicleDayState:
     current_y: float
 
 
-def load_bins_by_area(mapping_path: str | Path) -> dict[str, list[int]]:
-    bins_by_area: dict[str, list[int]] = {}
-    with Path(mapping_path).open("r", encoding="utf-8") as handle:
-        reader = csv.DictReader(handle)
-        for row in reader:
-            area = str(row["name"])
-            bins_by_area.setdefault(area, []).append(int(row["bin_id"]))
-    return bins_by_area
+def generate_day_events(
+    day: date,
+    vehicles_schedules: list[VehicleSchedule],
+    seasons: dict[str, tuple[tuple[int, int], tuple[int, int]]],
+    bins_by_area: dict[str, list[int]],
+    bins: dict[int, BinRecord],
+    vehicle_emptying_coords: tuple[float, float],
+    empty_after_volume: int,
+    latent_filllevel_simulator: LatentFillLevelSimulator,
+) -> list[BinVisitEvent | VehicleEmptyingEvent]:
+    events: list[BinVisitEvent | VehicleEmptyingEvent] = []
+
+    for vehicle_schedule in vehicles_schedules:
+        areas = areas_for_vehicle_day(vehicle_schedule, day, seasons)
+        _append_vehicle_day_events(
+            day=day,
+            vehicle_schedule=vehicle_schedule,
+            areas=areas,
+            bins_by_area=bins_by_area,
+            bins=bins,
+            events=events,
+            vehicle_emptying_coords=vehicle_emptying_coords,
+            empty_after_volume=empty_after_volume,
+            latent_filllevel_simulator=latent_filllevel_simulator,
+        )
+
+    return events
 
 
-"""
-after each bin drive to the nearest bin in the same area.
-=> implicitly ignoring vehicle emptyings during the same area
-"""
 def _nearest_bin_order(
     bin_ids_by_area_config: list[int],
     bins: dict[int, BinRecord],
@@ -74,9 +71,7 @@ def _nearest_bin_order(
 
     return ordered
 
-"""
-helper for initial state of a vehicle each day
-"""
+
 def _initial_vehicle_day_state(vehicle_emptying_coords: tuple[float, float]) -> _VehicleDayState:
     return _VehicleDayState(
         volume_since_emptying=0,
@@ -84,52 +79,26 @@ def _initial_vehicle_day_state(vehicle_emptying_coords: tuple[float, float]) -> 
         current_y=vehicle_emptying_coords[1],
     )
 
-"""
-helper for building a bin_visit event
-"""
-def _build_bin_visit_event(day: date, vehicle_number: int, area: str, _bin: BinRecord) -> BinVisitEvent:
-    return BinVisitEvent(
-        day=day,
-        vehicle_number=vehicle_number,
-        area=area,
-        bin_id=_bin.id,
-        coord_x=_bin.coord_x,
-        coord_y=_bin.coord_y,
-    )
 
-"""
-helper for building a vehicle_emptying event
-"""
-def _build_vehicle_emptying_event(
-    day: date,
-    vehicle_number: int,
-    vehicle_emptying_coords: tuple[float, float],
-) -> VehicleEmptyingEvent:
-    return VehicleEmptyingEvent(
-        day=day,
-        vehicle_number=vehicle_number,
-        coord_x=vehicle_emptying_coords[0],
-        coord_y=vehicle_emptying_coords[1],
-    )
-
-"""
-Append a bin_visit event and update the state of the vehicle.
-- update the volume since last vehicle_emptying 
-- update the current position of the vehicle
-"""
 def _append_visit_and_update_state(
     day: date,
     vehicle_number: int,
     area: str,
     _bin: BinRecord,
-    visits: list[BinVisitEvent],
     events: list[BinVisitEvent | VehicleEmptyingEvent],
     state: _VehicleDayState,
     latent_filllevel_simulator: LatentFillLevelSimulator,
 ) -> None:
-    visit = _build_bin_visit_event(day=day, vehicle_number=vehicle_number, area=area, _bin=_bin)
-    visits.append(visit)
-    events.append(visit)
+    events.append(
+        BinVisitEvent(
+            day=day,
+            vehicle_number=vehicle_number,
+            area=area,
+            bin_id=_bin.id,
+            coord_x=_bin.coord_x,
+            coord_y=_bin.coord_y,
+        )
+    )
 
     latent_collection_ratio = latent_filllevel_simulator.latent_collection_ratio_for_visit(
         bin_id=_bin.id,
@@ -140,10 +109,7 @@ def _append_visit_and_update_state(
     state.current_x = _bin.coord_x
     state.current_y = _bin.coord_y
 
-"""
-Append a vehicle_emptying event and reset the state of the vehicle.
-- reset the volume since last vehicle_emptying 
-- reset the current position of the vehicle to the emptying position "VEHICLE_EMPTYING_COORDS"""
+
 def _append_emptying_and_reset_state(
     day: date,
     vehicle_number: int,
@@ -152,26 +118,23 @@ def _append_emptying_and_reset_state(
     vehicle_emptying_coords: tuple[float, float],
 ) -> None:
     events.append(
-        _build_vehicle_emptying_event(
+        VehicleEmptyingEvent(
             day=day,
             vehicle_number=vehicle_number,
-            vehicle_emptying_coords=vehicle_emptying_coords,
+            coord_x=vehicle_emptying_coords[0],
+            coord_y=vehicle_emptying_coords[1],
         )
     )
     state.volume_since_emptying = 0
     state.current_x, state.current_y = vehicle_emptying_coords
 
 
-"""
-Append all events of a given vehicle and day for a given area to events lists.
-"""
 def _append_area_events(
     day: date,
     vehicle_number: int,
     area: str,
     bins_by_area: dict[str, list[int]],
     bins: dict[int, BinRecord],
-    visits: list[BinVisitEvent],
     events: list[BinVisitEvent | VehicleEmptyingEvent],
     state: _VehicleDayState,
     vehicle_emptying_coords: tuple[float, float],
@@ -192,7 +155,6 @@ def _append_area_events(
             vehicle_number=vehicle_number,
             area=area,
             _bin=_bin,
-            visits=visits,
             events=events,
             state=state,
             latent_filllevel_simulator=latent_filllevel_simulator,
@@ -207,16 +169,13 @@ def _append_area_events(
                 vehicle_emptying_coords=vehicle_emptying_coords,
             )
 
-"""
-Append all events of a given vehicle and day. Ends with a vehicle_emptying event.
-"""
+
 def _append_vehicle_day_events(
     day: date,
     vehicle_schedule: VehicleSchedule,
     areas: list[str],
     bins_by_area: dict[str, list[int]],
     bins: dict[int, BinRecord],
-    visits: list[BinVisitEvent],
     events: list[BinVisitEvent | VehicleEmptyingEvent],
     vehicle_emptying_coords: tuple[float, float],
     empty_after_volume: int,
@@ -231,7 +190,6 @@ def _append_vehicle_day_events(
             area=area,
             bins_by_area=bins_by_area,
             bins=bins,
-            visits=visits,
             events=events,
             state=state,
             vehicle_emptying_coords=vehicle_emptying_coords,
@@ -247,44 +205,29 @@ def _append_vehicle_day_events(
         vehicle_emptying_coords=vehicle_emptying_coords,
     )
 
-"""
-central function to generate tour items (bin_visits and vehicle_emptyings) for a given:
-- day
-- vehicle schedule (from config)
-- seasons (from config)
-- bins-to-areas mapping (from config)
-- bins by area (database)
 
-these are synthetic helper objects (e.g. direct mapping to bin instead of nfc-tags)
+def areas_for_vehicle_day(vehicle: VehicleSchedule, day: date, seasons: dict[str, SeasonBounds]) -> list[str]:
+    return [
+        rule.area
+        for rule in vehicle.rules
+        if day.isoweekday() in choose_frequency(rule, day, seasons).weekdays
+    ]
 
-implements current routing algorithm.
-"""
-def generate_day_tour_items(
-    day: date,
-    vehicles_schedules: list[VehicleSchedule],
-    seasons: dict[str, tuple[tuple[int, int], tuple[int, int]]],
-    bins_by_area: dict[str, list[int]],
-    bins: dict[int, BinRecord],
-    vehicle_emptying_coords: tuple[float, float],
-    empty_after_volume: int,
-    latent_filllevel_simulator: LatentFillLevelSimulator,
-) -> list[BinVisitEvent | VehicleEmptyingEvent]:
-    visits: list[BinVisitEvent] = []
-    events: list[BinVisitEvent | VehicleEmptyingEvent] = []
 
-    for vehicle_schedule in vehicles_schedules:
-        areas = areas_for_vehicle_day(vehicle_schedule, day, seasons)
-        _append_vehicle_day_events(
-            day=day,
-            vehicle_schedule=vehicle_schedule,
-            areas=areas,
-            bins_by_area=bins_by_area,
-            bins=bins,
-            visits=visits,
-            events=events,
-            vehicle_emptying_coords=vehicle_emptying_coords,
-            empty_after_volume=empty_after_volume,
-            latent_filllevel_simulator=latent_filllevel_simulator,
-        )
+def choose_frequency(rule: Rule, day: date, seasons: dict[str, SeasonBounds]) -> Frequency:
+    active_frequency = rule.frequency
+    for override in rule.seasonal_overrides:
+        season_bounds = seasons.get(override.season)
+        if not season_bounds or not _is_in_season(day, season_bounds):
+            continue
 
-    return events
+        if len(override.frequency.weekdays) >= len(rule.frequency.weekdays):
+            active_frequency = override.frequency
+
+    return active_frequency
+
+
+def _is_in_season(day: date, season_bounds: SeasonBounds) -> bool:
+    (start_month, start_day), (end_month, end_day) = season_bounds
+    current = (day.month, day.day)
+    return (start_month, start_day) <= current <= (end_month, end_day)

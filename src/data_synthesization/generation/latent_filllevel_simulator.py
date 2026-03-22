@@ -10,10 +10,10 @@ from data_synthesization.generation.event_effects import (
     build_active_event_index,
     compute_event_multiplier,
     get_active_events_for_area_and_date,
-    load_events,
 )
-from data_synthesization.shared.utils.schedule import SeasonBounds
-from data_synthesization.shared.utils.weather import DailyWeatherContext
+from data_synthesization.feature.tour_item.context.events_context import load_events
+from data_synthesization.shared.config.config_model.schedule_config import SeasonBounds
+from data_synthesization.feature.tour_item.context.models import DailyWeatherContext
 
 
 @dataclass(frozen=True)
@@ -36,7 +36,6 @@ class LatentFillLevelSimulator:
         bins_by_area: dict[str, list[int]],
         seasons: dict[str, SeasonBounds],
         rng: random.Random,
-        events_path: str | Path,
         weather_by_day: dict[date, DailyWeatherContext],
     ) -> None:
         self._config = config
@@ -47,7 +46,6 @@ class LatentFillLevelSimulator:
         self._states: dict[int, _BinState] = {}
 
         loaded_events = load_events(
-            events_path,
             known_areas=set(bins_by_area.keys()),
             bins_by_area=bins_by_area,
         )
