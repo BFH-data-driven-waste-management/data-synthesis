@@ -18,6 +18,7 @@ from data_synthesization.feature.tour_item.context.models import DailyWeatherCon
 @dataclass(frozen=True)
 class FillObservation:
     fill_level: FillLevel
+    fill_level_continuous: float
     action: VisitAction
 
 
@@ -67,23 +68,9 @@ class LatentFillLevelSimulator:
         if emptied:
             state.latent_fill_volume = 0.0
 
-        return FillObservation(fill_level=fill_level, action=action)
-
-    """
-    Determines the latent waste for a visit to a bin.
-    Note: this is only used for calculating the actual capacity addition to the vehicle.
-    FIXME: The latent fill level should only be calculated and used via observe_visit. Therefore the time when the observe_visit
-    function is called should be changed.    
-    """
-    def latent_collection_ratio_for_visit(self, bin_id: int, area: str, visit_day: date) -> float:
-        state = self._state_for_visit(bin_id=bin_id, area=area, visit_day=visit_day)
-        bin_record = self._bins_by_id[bin_id]
-        fill_level_key = continuous_ratio_to_ordinal_label(self._config, state.latent_fill_volume / bin_record.volume)
-        if fill_level_key == "half_full":
-            return 0.5
-        if fill_level_key in ("full", "over_full"):
-            return 1.0
-        return 0.0
+        return FillObservation(fill_level=fill_level,
+                               fill_level_continuous=state.latent_fill_volume / bin_record.volume,
+                               action=action)
 
     def _state_for_visit(self, bin_id: int, area: str, visit_day: date) -> _BinState:
         bin_record = self._bins_by_id[bin_id]

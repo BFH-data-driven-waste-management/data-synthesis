@@ -7,7 +7,7 @@ from data_synthesization.feature.tour_item.record_mapping import map_events_to_r
 from data_synthesization.feature.tour_item.types import BinVisitEvent, VehicleEmptyingEvent
 from data_synthesization.feature.tour_item.util import _group_tours_by_vehicle_and_day, _group_nfc_mappings_by_bin, \
     _group_activities_by_bin, _group_events_by_vehicle, _active_bins_for_day
-from data_synthesization.feature.tour_item.fill_level.latent_filllevel_simulator import LatentFillLevelSimulator
+from data_synthesization.feature.tour_item.fill_level.latent_fill_level_simulator import LatentFillLevelSimulator
 from data_synthesization.shared.config.config_model.app_config import AppConfig
 from data_synthesization.shared.config.config_model.schedule_config import ServiceSchedule
 from data_synthesization.shared.domain.models import (
@@ -34,7 +34,9 @@ class TourItemGenerationResult:
     last_vehicle_emptying_per_tour: list[tuple[int, datetime]]
     stats: TourItemGenerationStats
 
-
+"""
+first generate events for a day => then map/reduce to database records
+"""
 def generate_tour_item_records(
         *,
         config: AppConfig,
@@ -78,8 +80,7 @@ def generate_tour_item_records(
             average_speed_meters_per_second=config.tour_and_nfc_mapping.average_speed_meters_per_second,
             road_network_detour_factor=config.tour_and_nfc_mapping.road_network_detour_factor,
             seconds_per_bin_visit=config.tour_and_nfc_mapping.seconds_per_bin_visit,
-            seconds_per_vehicle_emptying=config.tour_and_nfc_mapping.seconds_per_vehicle_emptying,
-            latent_filllevel_simulator=latent_filllevel_simulator,
+            seconds_per_vehicle_emptying=config.tour_and_nfc_mapping.seconds_per_vehicle_emptying
         )
         bin_visit_records.extend(day_bin_visits)
         vehicle_emptying_records.extend(day_vehicle_emptyings)
@@ -121,7 +122,7 @@ def _generate_day_events(
         bins=active_bins_by_id,
         vehicle_emptying_coords=vehicle_emptying_coords,
         empty_after_volume=empty_after_volume,
-        latent_filllevel_simulator=latent_filllevel_simulator,
+        latent_fill_level_simulator=latent_filllevel_simulator,
     )
 
 
@@ -135,8 +136,7 @@ def _generate_records_for_day(
         average_speed_meters_per_second: float,
         road_network_detour_factor: float,
         seconds_per_bin_visit: int,
-        seconds_per_vehicle_emptying: int,
-        latent_filllevel_simulator: LatentFillLevelSimulator,
+        seconds_per_vehicle_emptying: int
 ) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
     day_bin_visits: list[BinVisitRecord] = []
     day_vehicle_emptyings: list[VehicleEmptyingRecord] = []
@@ -155,8 +155,7 @@ def _generate_records_for_day(
             average_speed_meters_per_second=average_speed_meters_per_second,
             road_network_detour_factor=road_network_detour_factor,
             seconds_per_bin_visit=seconds_per_bin_visit,
-            seconds_per_vehicle_emptying=seconds_per_vehicle_emptying,
-            latent_filllevel_simulator=latent_filllevel_simulator,
+            seconds_per_vehicle_emptying=seconds_per_vehicle_emptying
         )
         day_bin_visits.extend(bin_visits)
         day_vehicle_emptyings.extend(vehicle_emptyings)
