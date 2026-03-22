@@ -79,7 +79,6 @@ def generate_tour_item_records(
             day=day,
             events=day_events,
             tours_by_vehicle_day=tours_by_vehicle_day,
-            nfc_mappings_by_bin=nfc_mappings_by_bin,
             rng=rng,
         )
         bin_visit_records.extend(day_bin_visits)
@@ -140,7 +139,6 @@ def _generate_records_for_day(
         day: date,
         events: list[BinVisitEvent | VehicleEmptyingEvent],
         tours_by_vehicle_day: dict[tuple[int, date], list[TourRecord]],
-        nfc_mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
         rng: random.Random,
 ) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
     day_bin_visits: list[BinVisitRecord] = []

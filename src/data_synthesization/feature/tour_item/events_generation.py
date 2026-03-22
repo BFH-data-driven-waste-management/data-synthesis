@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta, timezone
-from math import hypot
 
+from data_synthesization.feature.tour_item.active_nfc_mapping.find_active_mapping import find_mapping_for_bin_visit_day
 from data_synthesization.feature.tour_item.schedule.choose_active_areas import areas_for_vehicle_day
+from data_synthesization.feature.tour_item.schedule.estimate_travel_time import estimate_travel_seconds
 from data_synthesization.feature.tour_item.schedule.route_to_nearest_bin import nearest_bin_order
 from data_synthesization.feature.tour_item.types import BinVisitEvent, VehicleEmptyingEvent
 from data_synthesization.feature.tour_item.fill_level.latent_fill_level_simulator import LatentFillLevelSimulator
@@ -211,7 +212,7 @@ def _append_visit_and_update_state(
             coord_y=_bin.coord_y,
             event_timestamp=event_timestamp,
             received_timestamp=received_timestamp,
-            nfc_tag_mapping_id=_find_mapping_for_bin_visit_time(
+            nfc_tag_mapping_id=find_mapping_for_bin_visit_day(
                 exact_time=event_timestamp,
                 bin_id=_bin.id,
                 mappings_by_bin=mappings_by_bin,
@@ -271,7 +272,7 @@ def _event_timestamps_for_next_stop(
     road_network_detour_factor: float,
     average_speed_meters_per_second: float,
 ) -> tuple[datetime, datetime]:
-    travel_seconds = _estimate_travel_seconds(
+    travel_seconds = estimate_travel_seconds(
         start_x=current_x,
         start_y=current_y,
         target_x=target_x,
@@ -281,27 +282,3 @@ def _event_timestamps_for_next_stop(
     )
     event_timestamp = current_timestamp + timedelta(seconds=travel_seconds + seconds_spent)
     return event_timestamp, event_timestamp + timedelta(seconds=1)
-
-
-def _estimate_travel_seconds(
-    start_x: float,
-    start_y: float,
-    target_x: float,
-    target_y: float,
-    road_network_detour_factor: float,
-    average_speed_meters_per_second: float,
-) -> int:
-    direct_distance_meters = hypot(target_x - start_x, target_y - start_y)
-    network_distance_meters = direct_distance_meters * road_network_detour_factor
-    return max(1, int(network_distance_meters / average_speed_meters_per_second))
-
-
-def _find_mapping_for_bin_visit_time(
-    exact_time: datetime,
-    bin_id: int,
-    mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
-) -> int | None:
-    for mapping in mappings_by_bin.get(bin_id, []):
-        if mapping.mapped_at <= exact_time and (mapping.unmapped_at is None or exact_time < mapping.unmapped_at):
-            return mapping.id
-    return None
