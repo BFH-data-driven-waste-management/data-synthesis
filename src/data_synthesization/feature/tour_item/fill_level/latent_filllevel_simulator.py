@@ -2,15 +2,15 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 import random
 
+from data_synthesization.feature.tour_item.fill_level.compute_weather_multiplier import compute_weather_multiplier
+from data_synthesization.feature.tour_item.fill_level.util import continuous_ratio_to_ordinal_label, \
+    fill_level_str_to_enum
 from data_synthesization.shared.config.config_model.latent_filllevel_config import LatentFillLevelConfig
 from data_synthesization.shared.domain.enums import FillLevel, VisitAction
 from data_synthesization.shared.domain.models import BinRecord
-from data_synthesization.feature.tour_item.event_effects import (
-    build_active_event_index,
-    compute_event_multiplier,
-    get_active_events_for_area_and_date,
-)
-from data_synthesization.feature.tour_item.context.events_context import load_events
+from data_synthesization.feature.tour_item.fill_level.compute_event_multiplier import compute_event_multiplier
+from data_synthesization.feature.tour_item.context.events_context import load_events, build_active_event_index, \
+    get_active_events_for_area_and_date
 from data_synthesization.shared.config.config_model.schedule_config import SeasonBounds
 from data_synthesization.feature.tour_item.context.models import DailyWeatherContext
 
@@ -57,8 +57,8 @@ class LatentFillLevelSimulator:
     def observe_visit(self, bin_id: int, area: str, visit_day: date) -> FillObservation:
         bin_record = self._bins_by_id[bin_id]
         state = self._state_for_visit(bin_id=bin_id, area=area, visit_day=visit_day)
-        fill_level_key = self._fill_level_key(state.latent_fill_volume / bin_record.volume)
-        fill_level = self._to_observed_fill_level(fill_level_key)
+        fill_level_key = continuous_ratio_to_ordinal_label(self._config, state.latent_fill_volume / bin_record.volume)
+        fill_level = fill_level_str_to_enum(fill_level_key)
 
         emptied_probability = self._config.action_probabilities[fill_level_key].emptied
         emptied = self._rng.random() < emptied_probability
@@ -78,7 +78,7 @@ class LatentFillLevelSimulator:
     def latent_collection_ratio_for_visit(self, bin_id: int, area: str, visit_day: date) -> float:
         state = self._state_for_visit(bin_id=bin_id, area=area, visit_day=visit_day)
         bin_record = self._bins_by_id[bin_id]
-        fill_level_key = self._fill_level_key(state.latent_fill_volume / bin_record.volume)
+        fill_level_key = continuous_ratio_to_ordinal_label(self._config, state.latent_fill_volume / bin_record.volume)
         if fill_level_key == "half_full":
             return 0.5
         if fill_level_key in ("full", "over_full"):
@@ -132,47 +132,9 @@ class LatentFillLevelSimulator:
             config=self._config.event_effects,
             rng=self._rng,
         )
-        weather_multiplier = self._weather_multiplier(area=area, current_day=current_day)
+        weather_multiplier = compute_weather_multiplier(self._config, self._weather_by_day, area=area, current_day=current_day)
         return base_increment * event_multiplier * weather_multiplier
 
-    """
-    Every day receives a weather multiplier that is influenced by the weather conditions.
-    Due to the daily increment the weather is considered for every day since last bin_visit
-    """
-    def _weather_multiplier(self, area: str, current_day: date) -> float:
-        if not self._config.weather_effects.enabled:
-            return 1.0
-
-        weather_context = self._weather_by_day.get(current_day - timedelta(days=1))
-        if weather_context is None:
-            return 1.0
-
-        intensity = (
-            self._config.weather_effects.strong_area_intensity
-            if area in self._config.weather_effects.strong_weather_areas
-            else self._config.weather_effects.default_area_intensity
-        )
-        score = self._weather_score(weather_context)
-        multiplier = 1.0 + intensity * score
-        return max(
-            self._config.weather_effects.min_multiplier,
-            min(multiplier, self._config.weather_effects.max_multiplier),
-        )
-
-    """
-    Calculates a weather score based on the configured weights and normalization for the weather variables.
-    All variables are normalized to the configured baseline and scale.
-    """
-    def _weather_score(self, weather: DailyWeatherContext) -> float:
-        weights = self._config.weather_effects.weights
-        norm = self._config.weather_effects.normalization
-
-        temp_mean_component = weights.temp_mean * ((weather.temp_mean - norm.temp_mean_baseline) / norm.temp_mean_scale)
-        temp_max_component = weights.temp_max * ((weather.temp_max - norm.temp_max_baseline) / norm.temp_max_scale)
-        sunshine_component = weights.sunshine * ((weather.sunshine_duration - norm.sunshine_baseline) / norm.sunshine_scale)
-        precipitation_component = weights.precipitation * ((weather.precipitation - norm.precipitation_baseline) / norm.precipitation_scale)
-
-        return temp_mean_component + temp_max_component + sunshine_component - precipitation_component
 
     def _base_rate_for_day(self, area: str, weekday_name: str) -> float:
         area_overrides = self._config.zone_base_fill_rate_ratio_per_day_weekday_overrides.get(area, {})
@@ -190,21 +152,3 @@ class LatentFillLevelSimulator:
                 return season_name
         return "default"
 
-    def _fill_level_key(self, ratio: float) -> str:
-        if ratio <= self._config.thresholds.empty_or_almost_empty_max_ratio:
-            return "empty_or_almost_empty"
-        if ratio <= self._config.thresholds.half_full_max_ratio:
-            return "half_full"
-        if ratio <= self._config.thresholds.full_max_ratio:
-            return "full"
-        return "over_full"
-
-    @staticmethod
-    def _to_observed_fill_level(fill_level_key: str) -> FillLevel:
-        mapping = {
-            "empty_or_almost_empty": FillLevel.EMPTY_OR_ALMOST_EMPTY,
-            "half_full": FillLevel.HALF_FULL,
-            "full": FillLevel.FULL,
-            "over_full": FillLevel.OVERFULL,
-        }
-        return mapping[fill_level_key]

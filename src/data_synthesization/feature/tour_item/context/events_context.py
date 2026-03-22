@@ -1,8 +1,8 @@
 import json
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
-from data_synthesization.feature.tour_item.context.models import EventDefinition, EventPeriod
+from data_synthesization.feature.tour_item.context.models import EventDefinition, EventPeriod, ActiveEventForDay
 
 DEFAULT_EVENTS_PATH = Path("data/static/events_with_expected_attendance_tourism_office.json")
 
@@ -53,3 +53,37 @@ def load_events(
     if unknown_areas:
         print(f"Unknown affected area references: {unknown_areas}")
     return events
+
+"""
+index structure:
+- key: day
+- value: dict[area_code, list[ActiveEventForDay]]
+"""
+def build_active_event_index(events: list[EventDefinition]) -> dict[date, dict[str, list[ActiveEventForDay]]]:
+    index: dict[date, dict[str, list[ActiveEventForDay]]] = {}
+
+    for event in events:
+        for period in event.periods:
+            current_day = period.start
+            while current_day <= period.end:
+                areas_for_day = index.setdefault(current_day, {})
+                for area_code in event.affected_neighbourhoods:
+                    areas_for_day.setdefault(area_code, []).append(
+                        ActiveEventForDay(
+                            event_key=event.event_key,
+                            name=event.name,
+                            area_code=area_code,
+                            expected_people_per_day=period.expected_people_per_day,
+                        )
+                    )
+                current_day += timedelta(days=1)
+
+    return index
+
+
+def get_active_events_for_area_and_date(
+    index: dict[date, dict[str, list[ActiveEventForDay]]],
+    area: str,
+    current_day: date,
+) -> list[ActiveEventForDay]:
+    return index.get(current_day, {}).get(area, [])
