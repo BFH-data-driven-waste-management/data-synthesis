@@ -4,7 +4,7 @@ from math import hypot
 from uuid import uuid4
 
 from data_synthesization.feature.tour_item.types import BinVisitEvent, VehicleEmptyingEvent
-from data_synthesization.generation.latent_filllevel_simulator import LatentFillLevelSimulator
+from data_synthesization.feature.tour_item.latent_filllevel_simulator import LatentFillLevelSimulator
 from data_synthesization.shared.domain.enums import ConnectivityState
 from data_synthesization.shared.domain.models import BinVisitRecord, NfcTagMappingRecord, TourRecord, VehicleEmptyingRecord
 

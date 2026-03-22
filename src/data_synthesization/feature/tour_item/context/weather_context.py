@@ -8,15 +8,11 @@ DEFAULT_WEATHER_FILE_PATTERN = "data/static/historical_weater_neuchatle_*.csv"
 
 
 def load_weather_context(weather_pattern: str = DEFAULT_WEATHER_FILE_PATTERN) -> dict[date, DailyWeatherContext]:
-    weather_path = resolve_latest_weather_file(weather_pattern)
-    return load_daily_weather_context(weather_path)
+    weather_path = _resolve_latest_weather_file(weather_pattern)
+    return _load_daily_weather_context(weather_path)
 
 
-def resolve_weather_path(weather_pattern: str = DEFAULT_WEATHER_FILE_PATTERN) -> Path:
-    return resolve_latest_weather_file(weather_pattern)
-
-
-def load_daily_weather_context(path: str | Path) -> dict[date, DailyWeatherContext]:
+def _load_daily_weather_context(path: str | Path) -> dict[date, DailyWeatherContext]:
     weather_by_day: dict[date, DailyWeatherContext] = {}
     weather_path = Path(path)
 
@@ -36,7 +32,7 @@ def load_daily_weather_context(path: str | Path) -> dict[date, DailyWeatherConte
     return weather_by_day
 
 
-def resolve_latest_weather_file(pattern: str) -> Path:
+def _resolve_latest_weather_file(pattern: str) -> Path:
     weather_files = sorted(Path().glob(pattern))
     if not weather_files:
         raise FileNotFoundError(f"No weather file found matching pattern: {pattern}")

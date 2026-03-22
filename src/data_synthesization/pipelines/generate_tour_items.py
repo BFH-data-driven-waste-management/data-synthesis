@@ -5,7 +5,7 @@ from pathlib import Path
 from data_synthesization.feature.tour_item.context.neighbourhood_context import load_bins_by_area
 from data_synthesization.feature.tour_item.context.weather_context import DEFAULT_WEATHER_FILE_PATTERN, load_weather_context
 from data_synthesization.feature.tour_item.generator import generate_tour_item_records
-from data_synthesization.generation.latent_filllevel_simulator import LatentFillLevelSimulator
+from data_synthesization.feature.tour_item.latent_filllevel_simulator import LatentFillLevelSimulator
 from data_synthesization.shared.config.config import load_config
 from data_synthesization.shared.config.latent_filllevel import load_latent_filllevel_config
 from data_synthesization.shared.config.schedule import load_service_schedule

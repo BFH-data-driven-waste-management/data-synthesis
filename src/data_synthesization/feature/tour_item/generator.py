@@ -7,7 +7,7 @@ from data_synthesization.feature.tour_item.record_mapping import map_events_to_r
 from data_synthesization.feature.tour_item.types import BinVisitEvent, VehicleEmptyingEvent
 from data_synthesization.feature.tour_item.util import _group_tours_by_vehicle_and_day, _group_nfc_mappings_by_bin, \
     _group_activities_by_bin, _group_events_by_vehicle, _active_bins_for_day
-from data_synthesization.generation.latent_filllevel_simulator import LatentFillLevelSimulator
+from data_synthesization.feature.tour_item.latent_filllevel_simulator import LatentFillLevelSimulator
 from data_synthesization.shared.config.config_model.app_config import AppConfig
 from data_synthesization.shared.config.config_model.schedule_config import ServiceSchedule
 from data_synthesization.shared.domain.models import (

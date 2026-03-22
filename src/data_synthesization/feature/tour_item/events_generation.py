@@ -3,7 +3,7 @@ from datetime import date
 from math import hypot
 
 from data_synthesization.feature.tour_item.types import BinVisitEvent, VehicleEmptyingEvent
-from data_synthesization.generation.latent_filllevel_simulator import LatentFillLevelSimulator
+from data_synthesization.feature.tour_item.latent_filllevel_simulator import LatentFillLevelSimulator
 from data_synthesization.shared.config.config_model.schedule_config import VehicleSchedule, SeasonBounds, Rule, \
     Frequency
 from data_synthesization.shared.domain.models import BinRecord
