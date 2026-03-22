@@ -1,15 +1,18 @@
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import uuid4
 
+from data_synthesization.feature.tour_item.active_nfc_mapping.find_active_mapping import find_mapping_for_bin_visit_day
 from data_synthesization.feature.tour_item.types import RealWorldBinVisit, RealWorldVehicleEmptying
 from data_synthesization.shared.domain.enums import ConnectivityState
-from data_synthesization.shared.domain.models import BinVisitRecord, TourRecord, VehicleEmptyingRecord
+from data_synthesization.shared.domain.models import BinVisitRecord, TourRecord, VehicleEmptyingRecord, \
+    NfcTagMappingRecord
 
 
 def map_events_to_records_for_vehicle_tours(
         vehicle_events: list[RealWorldBinVisit | RealWorldVehicleEmptying],
         vehicle_tours: list[TourRecord],
+        nfc_mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
         rng: random.Random,
 ) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
     bin_visit_records: list[BinVisitRecord] = []
@@ -27,6 +30,7 @@ def map_events_to_records_for_vehicle_tours(
             rng=rng,
             bin_visit_records=bin_visit_records,
             vehicle_emptying_records=vehicle_emptying_records,
+            nfc_mappings_by_bin=nfc_mappings_by_bin,
         )
         last_vehicle_emptying_per_tour[tour.id] = last_vehicle_emptying_at
 
@@ -41,6 +45,7 @@ def _map_single_tour_events_to_records(
         rng: random.Random,
         bin_visit_records: list[BinVisitRecord],
         vehicle_emptying_records: list[VehicleEmptyingRecord],
+        nfc_mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
 ) -> datetime:
     last_vehicle_emptying_event_timestamp: datetime | None = None
 
@@ -55,7 +60,8 @@ def _map_single_tour_events_to_records(
                 _append_bin_visit_record_if_possible(
                     event=event,
                     tour=tour,
-                    bin_visit_records=bin_visit_records
+                    bin_visit_records=bin_visit_records,
+                    nfc_mappings_by_bin=nfc_mappings_by_bin
                 )
         else:
             _append_vehicle_emptying_record_if_logged(
@@ -64,7 +70,7 @@ def _map_single_tour_events_to_records(
                 rng=rng,
                 vehicle_emptying_records=vehicle_emptying_records,
             )
-            last_vehicle_emptying_event_timestamp = event.event_timestamp
+            last_vehicle_emptying_event_timestamp = event.relative_event_timestamp
 
     return last_vehicle_emptying_event_timestamp
 
@@ -96,17 +102,29 @@ def _append_bin_visit_record_if_possible(
         event: RealWorldBinVisit,
         tour: TourRecord,
         bin_visit_records: list[BinVisitRecord],
+        nfc_mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
 ) -> None:
+
+    absolute_event_timestamp = _add_time_of_the_day_to_base_datetimes(event.relative_event_timestamp,tour.started_at)
+    nfc_tag_mapping_id = find_mapping_for_bin_visit_day(
+        exact_time= absolute_event_timestamp,
+        bin_id=event.bin_id,
+        mappings_by_bin=nfc_mappings_by_bin
+    )
+
+    if nfc_tag_mapping_id is None:
+        return
+
     bin_visit_records.append(
         BinVisitRecord(
             client_event_id=str(uuid4()),
-            event_timestamp=event.event_timestamp,
-            received_timestamp=event.received_timestamp,
+            event_timestamp=absolute_event_timestamp,
+            received_timestamp=_add_time_of_the_day_to_base_datetimes(event.relative_received_timestamp,tour.started_at),
             connectivity_state=ConnectivityState.ONLINE,
             fill_level=event.fill_level,
             action=event.action,
             tour_id=tour.id,
-            nfc_tag_mapping_id=event.nfc_tag_mapping_id,
+            nfc_tag_mapping_id=nfc_tag_mapping_id,
         )
     )
 
@@ -118,16 +136,20 @@ def _append_vehicle_emptying_record_if_logged(
         rng: random.Random,
         vehicle_emptying_records: list[VehicleEmptyingRecord],
 ) -> None:
-    event_was_not_logged_by_virtual_tour_mistakenly = rng.random() < 0.05
-    if event_was_not_logged_by_virtual_tour_mistakenly:
+    event_was_not_logged_by_virtual_tour_mistakenly = rng.random() < 0.02
+    if event_was_not_logged_by_virtual_tour_mistakenly and not event.is_last_of_the_tour:
         return
 
     vehicle_emptying_records.append(
         VehicleEmptyingRecord(
             client_event_id=str(uuid4()),
-            event_timestamp=event.event_timestamp,
-            received_timestamp=event.received_timestamp,
+            event_timestamp=_add_time_of_the_day_to_base_datetimes(event.relative_event_timestamp,tour.started_at),
+            received_timestamp= _add_time_of_the_day_to_base_datetimes(event.relative_event_timestamp,tour.started_at),
             connectivity_state=ConnectivityState.ONLINE,
             tour_id=tour.id,
         )
     )
+
+
+def _add_time_of_the_day_to_base_datetimes(daytime: datetime, base_time: datetime) -> datetime:
+    return base_time + timedelta(hours=daytime.hour, minutes=daytime.minute, seconds=daytime.second, microseconds=daytime.microsecond)

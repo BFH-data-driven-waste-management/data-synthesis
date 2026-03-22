@@ -30,13 +30,13 @@ class _BinState:
 
 class LatentFillLevelSimulator:
     def __init__(
-        self,
-        config: LatentFillLevelConfig,
-        bins_by_id: dict[int, BinRecord],
-        bins_by_area: dict[str, list[int]],
-        seasons: dict[str, SeasonBounds],
-        rng: random.Random,
-        weather_by_day: dict[date, DailyWeatherContext],
+            self,
+            config: LatentFillLevelConfig,
+            bins_by_id: dict[int, BinRecord],
+            bins_by_area: dict[str, list[int]],
+            seasons: dict[str, SeasonBounds],
+            rng: random.Random,
+            weather_by_day: dict[date, DailyWeatherContext],
     ) -> None:
         self._config = config
         self._bins_by_id = bins_by_id
@@ -55,6 +55,7 @@ class LatentFillLevelSimulator:
     Simulates the latent fill level of a bin over time.
     Determines fill level label and action based on the observed fill level.
     """
+
     def observe_visit(self, bin_id: int, area: str, visit_day: date) -> FillObservation:
         bin_record = self._bins_by_id[bin_id]
         state = self._state_for_visit(bin_id=bin_id, area=area, visit_day=visit_day)
@@ -65,12 +66,12 @@ class LatentFillLevelSimulator:
         emptied = self._rng.random() < emptied_probability
         action = VisitAction.EMPTIED if emptied else VisitAction.NOT_EMPTIED
 
+        observation = FillObservation(fill_level=fill_level,
+                                      fill_level_continuous=state.latent_fill_volume / bin_record.volume,
+                                      action=action)
         if emptied:
             state.latent_fill_volume = 0.0
-
-        return FillObservation(fill_level=fill_level,
-                               fill_level_continuous=state.latent_fill_volume / bin_record.volume,
-                               action=action)
+        return observation
 
     def _state_for_visit(self, bin_id: int, area: str, visit_day: date) -> _BinState:
         bin_record = self._bins_by_id[bin_id]
@@ -87,6 +88,7 @@ class LatentFillLevelSimulator:
     """
     for each day since last update, accumulate the daily increment of the latent fill level.
     """
+
     def _accumulate_between_days(self, state: _BinState, bin_record: BinRecord, area: str, visit_day: date) -> None:
         day = state.last_updated_day + timedelta(days=1)
         while day <= visit_day:
@@ -98,6 +100,7 @@ class LatentFillLevelSimulator:
     """
     central logic for calculating the daily increment of the latent fill level in liters.
     """
+
     def _daily_increment(self, volume: int, area: str, current_day: date) -> float:
         weekday_name = current_day.strftime("%A").lower()
         base_rate = self._base_rate_for_day(area, weekday_name)
@@ -119,9 +122,9 @@ class LatentFillLevelSimulator:
             config=self._config.event_effects,
             rng=self._rng,
         )
-        weather_multiplier = compute_weather_multiplier(self._config, self._weather_by_day, area=area, current_day=current_day)
+        weather_multiplier = compute_weather_multiplier(self._config, self._weather_by_day, area=area,
+                                                        current_day=current_day)
         return base_increment * event_multiplier * weather_multiplier
-
 
     def _base_rate_for_day(self, area: str, weekday_name: str) -> float:
         area_overrides = self._config.zone_base_fill_rate_ratio_per_day_weekday_overrides.get(area, {})
@@ -138,4 +141,3 @@ class LatentFillLevelSimulator:
             if start <= month_day <= end:
                 return season_name
         return "default"
-

@@ -2,11 +2,11 @@ from data_synthesization.shared.domain.enums import FillLevel
 
 
 def continuous_ratio_to_ordinal_label(_config, ratio: float) -> str:
-    if ratio <= _config.thresholds.empty_or_almost_empty_max_ratio:
+    if ratio < _config.thresholds.empty_or_almost_empty_max_ratio:
         return "empty_or_almost_empty"
-    if ratio <= _config.thresholds.half_full_max_ratio:
+    if ratio < _config.thresholds.half_full_max_ratio:
         return "half_full"
-    if ratio <= _config.thresholds.full_max_ratio:
+    if ratio < _config.thresholds.full_max_ratio:
         return "full"
     return "over_full"
 

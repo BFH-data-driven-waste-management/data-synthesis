@@ -14,9 +14,8 @@ class RealWorldBinVisit:
     bin_id: int
     coord_x: float
     coord_y: float
-    event_timestamp: datetime
-    received_timestamp: datetime
-    nfc_tag_mapping_id: int | None
+    relative_event_timestamp: datetime
+    relative_received_timestamp: datetime
 
 
 @dataclass(frozen=True)
@@ -25,5 +24,6 @@ class RealWorldVehicleEmptying:
     vehicle_number: int
     coord_x: float
     coord_y: float
-    event_timestamp: datetime
-    received_timestamp: datetime
+    relative_event_timestamp: datetime
+    relative_received_timestamp: datetime
+    is_last_of_the_tour: bool

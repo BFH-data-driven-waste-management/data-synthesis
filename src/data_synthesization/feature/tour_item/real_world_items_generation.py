@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from datetime import date, datetime, time, timezone
 
-from data_synthesization.feature.tour_item.active_nfc_mapping.find_active_mapping import find_mapping_for_bin_visit_day
 from data_synthesization.feature.tour_item.schedule.choose_active_areas import areas_for_vehicle_day
 from data_synthesization.feature.tour_item.schedule.estimate_travel_time import event_timestamps_for_next_stop
 from data_synthesization.feature.tour_item.schedule.route_to_nearest_bin import nearest_bin_order
@@ -16,7 +15,7 @@ class _VehicleDayState:
     volume_since_emptying: float
     current_x: float
     current_y: float
-    current_timestamp: datetime
+    relative_timestamp: datetime
 
 
 @dataclass(frozen=True)
@@ -24,7 +23,6 @@ class EventGenerationContext:
     seasons: dict[str, SeasonBounds]
     bins_by_area: dict[str, list[int]]
     bins: dict[int, BinRecord]
-    mappings_by_bin: dict[int, list[NfcTagMappingRecord]]
     vehicle_emptying_coords: tuple[float, float]
     empty_after_volume: int
     latent_fill_level_simulator: LatentFillLevelSimulator
@@ -69,13 +67,8 @@ def generate_day_events(
                 )
 
                 if state.volume_since_emptying >= context.empty_after_volume:
-                    _append_emptying_and_reset_state(
-                        day=day,
-                        vehicle_number=vehicle_schedule.vehicle_number,
-                        events=events,
-                        state=state,
-                        context=context,
-                    )
+                    _append_emptying_and_reset_state(day=day, vehicle_number=vehicle_schedule.vehicle_number,
+                                                     events=events, state=state, context=context)
 
         # empty vehicle after each tour
         _append_emptying_and_reset_state(
@@ -84,6 +77,7 @@ def generate_day_events(
             events=events,
             state=state,
             context=context,
+            is_last_of_the_tour=True
         )
 
     return events
@@ -94,7 +88,7 @@ def _initial_vehicle_day_state(day: date, vehicle_emptying_coords: tuple[float, 
         volume_since_emptying=0,
         current_x=vehicle_emptying_coords[0],
         current_y=vehicle_emptying_coords[1],
-        current_timestamp=datetime.combine(day, time.min, tzinfo=timezone.utc),
+        relative_timestamp=datetime.combine(day, time.min, tzinfo=timezone.utc),
     )
 
 
@@ -117,22 +111,13 @@ def _append_visit_and_update_state(
     event_timestamp, received_timestamp = event_timestamps_for_next_stop(
         current_x=state.current_x,
         current_y=state.current_y,
-        current_timestamp=state.current_timestamp,
+        current_timestamp=state.relative_timestamp,
         target_x=_bin.coord_x,
         target_y=_bin.coord_y,
         seconds_spent=context.seconds_per_bin_visit,
         road_network_detour_factor=context.road_network_detour_factor,
         average_speed_meters_per_second=context.average_speed_meters_per_second,
     )
-
-    nfc_tag_mapping_id = find_mapping_for_bin_visit_day(
-        exact_time=event_timestamp,
-        bin_id=_bin.id,
-        mappings_by_bin=context.mappings_by_bin,
-    )
-
-    if nfc_tag_mapping_id is None:
-        return
 
     events.append(
         RealWorldBinVisit(
@@ -144,30 +129,25 @@ def _append_visit_and_update_state(
             bin_id=_bin.id,
             coord_x=_bin.coord_x,
             coord_y=_bin.coord_y,
-            event_timestamp=event_timestamp,
-            received_timestamp=received_timestamp,
-            nfc_tag_mapping_id=nfc_tag_mapping_id,
+            relative_event_timestamp=event_timestamp,
+            relative_received_timestamp=received_timestamp,
         )
     )
-
 
     state.volume_since_emptying += _bin.volume * observation.fill_level_continuous
     state.current_x = _bin.coord_x
     state.current_y = _bin.coord_y
-    state.current_timestamp = event_timestamp
+    state.relative_timestamp = event_timestamp
 
 
-def _append_emptying_and_reset_state(
-    day: date,
-    vehicle_number: int,
-    events: list[RealWorldBinVisit | RealWorldVehicleEmptying],
-    state: _VehicleDayState,
-    context: EventGenerationContext,
-) -> None:
+def _append_emptying_and_reset_state(day: date, vehicle_number: int,
+                                     events: list[RealWorldBinVisit | RealWorldVehicleEmptying],
+                                     state: _VehicleDayState, context: EventGenerationContext,
+                                     is_last_of_the_tour=False) -> None:
     event_timestamp, received_timestamp = event_timestamps_for_next_stop(
         current_x=state.current_x,
         current_y=state.current_y,
-        current_timestamp=state.current_timestamp,
+        current_timestamp=state.relative_timestamp,
         target_x=context.vehicle_emptying_coords[0],
         target_y=context.vehicle_emptying_coords[1],
         seconds_spent=context.seconds_per_vehicle_emptying,
@@ -180,10 +160,11 @@ def _append_emptying_and_reset_state(
             vehicle_number=vehicle_number,
             coord_x=context.vehicle_emptying_coords[0],
             coord_y=context.vehicle_emptying_coords[1],
-            event_timestamp=event_timestamp,
-            received_timestamp=received_timestamp,
+            relative_event_timestamp=event_timestamp,
+            relative_received_timestamp=received_timestamp,
+            is_last_of_the_tour=is_last_of_the_tour,
         )
     )
     state.volume_since_emptying = 0
     state.current_x, state.current_y = context.vehicle_emptying_coords
-    state.current_timestamp = event_timestamp
+    state.relative_timestamp = event_timestamp

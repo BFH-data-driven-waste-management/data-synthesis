@@ -71,14 +71,14 @@ def generate_tour_item_records(
             average_speed_meters_per_second=config.tour_and_nfc_mapping.average_speed_meters_per_second,
             road_network_detour_factor=config.tour_and_nfc_mapping.road_network_detour_factor,
             seconds_per_bin_visit=config.tour_and_nfc_mapping.seconds_per_bin_visit,
-            seconds_per_vehicle_emptying=config.tour_and_nfc_mapping.seconds_per_vehicle_emptying,
-            nfc_mappings_by_bin=nfc_mappings_by_bin,
+            seconds_per_vehicle_emptying=config.tour_and_nfc_mapping.seconds_per_vehicle_emptying
         )
 
         day_bin_visits, day_vehicle_emptyings, last_vehicle_emptying_per_tour_per_day = _generate_records_for_day(
             day=day,
             events=day_events,
             tours_by_vehicle_day=tours_by_vehicle_day,
+            nfc_mappings_by_bin=nfc_mappings_by_bin,
             rng=rng,
         )
         bin_visit_records.extend(day_bin_visits)
@@ -111,7 +111,6 @@ def _generate_day_events(
         road_network_detour_factor: float,
         seconds_per_bin_visit: int,
         seconds_per_vehicle_emptying: int,
-        nfc_mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
 ) -> list[RealWorldBinVisit | RealWorldVehicleEmptying]:
     active_bins_by_id = _active_bins_for_day(
         day=day,
@@ -122,7 +121,6 @@ def _generate_day_events(
         seasons=service_schedule.seasons,
         bins_by_area=bins_by_area_config,
         bins=active_bins_by_id,
-        mappings_by_bin=nfc_mappings_by_bin,
         vehicle_emptying_coords=vehicle_emptying_coords,
         empty_after_volume=empty_after_volume,
         latent_fill_level_simulator=latent_filllevel_simulator,
@@ -142,6 +140,7 @@ def _generate_records_for_day(
         day: date,
         events: list[RealWorldBinVisit | RealWorldVehicleEmptying],
         tours_by_vehicle_day: dict[tuple[int, date], list[TourRecord]],
+        nfc_mappings_by_bin: dict[int, list[NfcTagMappingRecord]],
         rng: random.Random,
 ) -> tuple[list[BinVisitRecord], list[VehicleEmptyingRecord], dict[int, datetime]]:
     day_bin_visits: list[BinVisitRecord] = []
@@ -155,6 +154,7 @@ def _generate_records_for_day(
         bin_visits, vehicle_emptyings, last_vehicle_emptying_per_tour_per_vehicle = map_events_to_records_for_vehicle_tours(
             vehicle_events=vehicle_events,
             vehicle_tours=vehicle_tours,
+            nfc_mappings_by_bin=nfc_mappings_by_bin,
             rng=rng,
         )
         day_bin_visits.extend(bin_visits)
