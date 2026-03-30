@@ -73,7 +73,7 @@ def _generate_bin_activity_records_for_bin(bin_record: BinRecord, config: AppCon
                 BinActivityRecord(
                     bin_id=bin_record.id,
                     active=current_active,
-                    activity_timestamp=episode_end.replace(hour=3, minute=0, second=0, microsecond=0),
+                    activity_timestamp=episode_end.replace(hour=1, minute=0, second=0, microsecond=0),
                 )
             )
 
