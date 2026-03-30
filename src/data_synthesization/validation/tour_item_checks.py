@@ -19,10 +19,10 @@ def validate_tour_items_end_with_vehicle_emptying(
 
     for visit in bin_visit_records:
         if visit.tour_id not in known_tour_ids:
-            raise ValueError(f"bin_visit references unknown tour_id={visit.tour_id}")
+            raise ValueError(f"bin_activty references unknown tour_id={visit.tour_id}")
 
         _validate_event_timestamp_within_tour_window(
-            event_type="bin_visit",
+            event_type="bin_activty",
             tour=tours_by_id[visit.tour_id],
             event_timestamp=visit.event_timestamp,
         )
@@ -31,7 +31,7 @@ def validate_tour_items_end_with_vehicle_emptying(
             last_event_by_tour=last_event_by_tour,
             tour_id=visit.tour_id,
             event_timestamp=visit.event_timestamp,
-            event_type="bin_visit",
+            event_type="bin_activty",
         )
 
     for emptying in vehicle_emptying_records:

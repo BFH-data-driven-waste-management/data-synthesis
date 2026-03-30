@@ -1,4 +1,4 @@
-from data_synthesization.feature.bin_visit.generator import BinActivityStats
+from data_synthesization.feature.bin_activty.generator import BinActivityStats
 from data_synthesization.feature.nfc_tag_mapping.generator import NfcTagMappingGenerationStats
 from data_synthesization.feature.tour.generator import TourGenerationStats
 from data_synthesization.feature.tour_item.generator import TourItemGenerationStats

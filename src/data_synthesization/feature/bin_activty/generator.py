@@ -5,7 +5,7 @@ import random
 
 from data_synthesization.shared.config.config_model.app_config import AppConfig
 from data_synthesization.shared.domain.models import BinActivityRecord, BinRecord
-from data_synthesization.feature.bin_visit.map_created_at_to_activity_state import is_created_at_date_initially_active
+from data_synthesization.feature.bin_activty.map_created_at_to_activity_state import is_created_at_date_initially_active
 from data_synthesization.shared.utils.time import to_utc
 
 
@@ -73,7 +73,7 @@ def _generate_bin_activity_records_for_bin(bin_record: BinRecord, config: AppCon
                 BinActivityRecord(
                     bin_id=bin_record.id,
                     active=current_active,
-                    activity_timestamp=episode_end,
+                    activity_timestamp=episode_end.replace(hour=3, minute=0, second=0, microsecond=0),
                 )
             )
 

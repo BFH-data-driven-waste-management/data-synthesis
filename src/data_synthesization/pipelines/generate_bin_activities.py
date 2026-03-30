@@ -2,7 +2,7 @@ from data_synthesization.shared.config.config import load_config
 from data_synthesization.shared.db.connection import connect
 from data_synthesization.shared.db.reader import read_bins
 from data_synthesization.shared.db.writer import insert_bin_activity
-from data_synthesization.feature.bin_visit.generator import generate_bin_activity_records
+from data_synthesization.feature.bin_activty.generator import generate_bin_activity_records
 from data_synthesization.shared.logging import log_bin_activity_stats
 from data_synthesization.validation.bin_activity_checks import validate_bin_activity
 

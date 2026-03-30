@@ -5,7 +5,7 @@ from data_synthesization.shared.config.config_model.latent_filllevel_config impo
 
 """
 Every day receives a weather multiplier that is influenced by the weather conditions.
-Due to the daily increment the weather is considered for every day since last bin_visit
+Due to the daily increment the weather is considered for every day since last bin_activty
 """
 def compute_weather_multiplier(_config, _weather_by_day, area: str, current_day: date) -> float:
     if not _config.weather_effects.enabled:
