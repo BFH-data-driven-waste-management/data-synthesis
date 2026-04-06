@@ -68,10 +68,8 @@ latent_filllevel:
   event_effects:
     enabled: true
     area_weight_default: 1.0
-    random_multiplier_min: 0.9
-    random_multiplier_max: 1.1
-    per_day_event_increment_cap_ratio: 0.25
-    multi_event_combination_cap_ratio: 0.35
+    random_multiplier_min: 0.6
+    random_multiplier_max: 1.4
     people_factor_buckets:
       - min_people: 0
         max_people: 999
