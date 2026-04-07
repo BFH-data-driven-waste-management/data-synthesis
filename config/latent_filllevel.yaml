@@ -68,24 +68,24 @@ latent_filllevel:
   event_effects:
     enabled: true
     area_weight_default: 1.0
-    random_multiplier_min: 0.6
-    random_multiplier_max: 1.4
+    random_multiplier_min: 0.9
+    random_multiplier_max: 1.1
     people_factor_buckets:
       - min_people: 0
         max_people: 999
-        factor: 0.02
+        factor: 0.1
       - min_people: 1000
         max_people: 2999
-        factor: 0.04
+        factor: 0.15
       - min_people: 3000
         max_people: 6999
-        factor: 0.07
+        factor: 0.20
       - min_people: 7000
         max_people: 11999
-        factor: 0.10
+        factor: 0.30
       - min_people: 12000
         max_people: 999999
-        factor: 0.14
+        factor: 0.40
 
   weather_effects:
     enabled: true
