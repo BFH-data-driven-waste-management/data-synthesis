@@ -1,5 +1,6 @@
 import random
 from datetime import datetime, timedelta, time, timezone
+from zoneinfo import ZoneInfo
 
 from data_synthesization.shared.config.config_model.simulation_config import TourTimingConfig
 from data_synthesization.shared.domain.models import TourRecord
@@ -49,6 +50,6 @@ def _build_tour_end(started_at: datetime, tour_timing: TourTimingConfig, rng: ra
     if rng.random() < tour_timing.next_day_midnight_ending_share:
         next_day = started_at.date() + timedelta(days=1)
         microsecond = rng.randint(0, 9999)
-        return datetime.combine(next_day, time(0, 0, 0, microsecond), tzinfo=timezone.utc)
+        return datetime.combine(next_day, time(0, 0, 0, microsecond), tzinfo=ZoneInfo("Europe/Zurich"))
     else:
         return None

@@ -88,7 +88,7 @@ def _initial_vehicle_day_state(day: date, vehicle_emptying_coords: tuple[float, 
         volume_since_emptying=0,
         current_x=vehicle_emptying_coords[0],
         current_y=vehicle_emptying_coords[1],
-        relative_timestamp=datetime.combine(day, time.min, tzinfo=timezone.utc),
+        relative_timestamp=datetime.combine(day, time.min),
     )
 
 

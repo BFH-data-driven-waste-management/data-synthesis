@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import date
 from datetime import datetime, timezone
 import random
+from zoneinfo import ZoneInfo
 
 from data_synthesization.feature.tour.build_virtual_tour_records import generate_tours_for_vehicle_and_day
 from data_synthesization.shared.config.config_model.app_config import AppConfig
@@ -42,4 +43,4 @@ def generate_tours(vehicle_ids: list[int], config: AppConfig) -> TourGenerationR
 
 
 def _build_base_start(day: date, tour_timing: TourTimingConfig) -> datetime:
-    return datetime.combine(day, tour_timing.reference_start_time_utc, tzinfo=timezone.utc)
+    return datetime.combine(day, tour_timing.reference_start_time_europe_zurich, tzinfo=ZoneInfo("Europe/Zurich"))

@@ -6,13 +6,11 @@ from datetime import time
 
 @dataclass(frozen=True)
 class TourTimingConfig:
-    reference_start_time_utc: time
+    reference_start_time_europe_zurich: time
     start_time_delta_min_minutes: int
     start_time_delta_max_minutes: int
     second_phone_offset_min_seconds: int
     second_phone_offset_max_seconds: int
-    reference_end_time_utc: time
-    reference_end_time_spread_minutes: int
     next_day_midnight_ending_share: float
 
 

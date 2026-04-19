@@ -61,6 +61,8 @@ def generate_nfc_tag_mapping_history(
                     id=None,
                     uid=build_uid(bin_record.id, sequence_index),
                     bin_id=bin_record.id,
+                    # utc is no problem here since the exact sampling
+                    # is random anyways
                     mapped_at=mapped_at,
                     unmapped_at=unmapped_at,
                 )

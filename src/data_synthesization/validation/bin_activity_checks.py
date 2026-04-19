@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from data_synthesization.shared.domain.models import BinActivityRecord, BinRecord
 from data_synthesization.shared.utils.time import to_utc
@@ -12,6 +13,7 @@ def validate_bin_activity(
         simulation_end: datetime,
 ) -> None:
     start = to_utc(simulation_start)
+    zurich_start = datetime(start.year, start.month, start.day, 1, 0, 0, tzinfo=ZoneInfo("Europe/Zurich"))
     end = to_utc(simulation_end)
 
     activities_by_bin: dict[int, list[BinActivityRecord]] = defaultdict(list)
@@ -32,12 +34,12 @@ def validate_bin_activity(
         if len(bin_records) < 1:
             raise ValueError(f"Bin {bin_id} has no activity records")
 
-        if to_utc(bin_records[0].activity_timestamp) != start:
+        if to_utc(bin_records[0].activity_timestamp) != zurich_start:
             raise ValueError(f"Bin {bin_id} first activity timestamp is not simulation start")
 
         for index, bin in enumerate(bin_records):
             activity_timestamp = to_utc(bin.activity_timestamp)
-            if activity_timestamp < start or activity_timestamp > end:
+            if activity_timestamp < zurich_start or activity_timestamp > end:
                 raise ValueError(f"Bin {bin_id} has activity outside simulation range: {activity_timestamp}")
 
             if index > 0:

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import timedelta, datetime
+from zoneinfo import ZoneInfo
 import math
 import random
 
@@ -48,7 +49,10 @@ def _generate_bin_activity_records_for_bin(bin_record: BinRecord, config: AppCon
     initial_bin_activity_record_of_bin = BinActivityRecord(
         bin_id=bin_record.id,
         active=current_active,
-        activity_timestamp=start,
+        activity_timestamp=datetime(
+            # explicitly set to 01:00 zurich time, to simulate the actual master-data sync in the p2 system
+            start.year, start.month, start.day, 1, 0, 0, tzinfo=ZoneInfo("Europe/Zurich")
+        ),
     )
     records.append(initial_bin_activity_record_of_bin)
 
@@ -73,7 +77,10 @@ def _generate_bin_activity_records_for_bin(bin_record: BinRecord, config: AppCon
                 BinActivityRecord(
                     bin_id=bin_record.id,
                     active=current_active,
-                    activity_timestamp=episode_end.replace(hour=1, minute=0, second=0, microsecond=0),
+                    activity_timestamp=datetime(
+                        # explicitly set to 01:00 zurich time, to simulate the actual master-data sync in the p2 system
+                        episode_end.year, episode_end.month, episode_end.day, 1, 0, 0, tzinfo=ZoneInfo("Europe/Zurich")
+                    )
                 )
             )
 
