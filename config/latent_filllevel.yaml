@@ -6,7 +6,7 @@ latent_filllevel:
 
   action_probabilities:
     empty_or_almost_empty:
-      emptied: 0.00
+      emptied: 0.1
     half_full:
       emptied: 0.5
     full:
