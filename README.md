@@ -15,3 +15,5 @@ Realistic assumptions are made about the data, because no empirical data is avai
 
 ## Usage
 Consult `USAGE.md` for detailed instructions on how to set up the environment and run the data generation pipelines.
+
+TODO: assumptions ref auf report
