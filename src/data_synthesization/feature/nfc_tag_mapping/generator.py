@@ -104,6 +104,9 @@ def _is_bin_active_at(
         timestamp: datetime,
         activity_by_bin: dict[int, list[BinActivityRecord]],
 ) -> bool:
+    if timestamp == INITIAL_MAPPING_TIMESTAMP:
+        return True
+
     activities = activity_by_bin.get(bin_id, [])
     last_active_state = False
 
