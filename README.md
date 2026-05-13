@@ -105,7 +105,7 @@ Consult [USAGE.md](USAGE.md) for detailed usage instructions.
 ---
 ## Additional information
 
-- Scripts in `/docker-entrypoint-initdb.d` run only on first initialization of the data volume.
+- Scripts in `/sql` run only on first initialization of the data volume.
 - To re-run schema initialization, remove the `postgres-data` volume first:
   ```bash
   docker compose down -v
