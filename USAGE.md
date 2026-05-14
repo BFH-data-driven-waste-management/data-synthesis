@@ -1,70 +1,84 @@
 # Usage
 
-1. Provide environment variables in `.env` file for the database container.
-2. Start the container:
-   ```bash
-   docker compose up -d
-   ```
-3. Connect to DB:
-   ```bash
-   psql postgresql://postgres:postgres@localhost:5432/postgres
-   ```
+See prerequisites and setup instructions in the [README](README.md) before following the steps below.
 
-## Python setup
-1. Create and activate a virtual environment:
-   ```bash
-   apt install python3.11-venv
-   python3.11 -m venv .venv
-   source .venv/bin/activate
-   ```
-2. Install dependencies centrally from `requirements.txt`:
-   ```bash
-   python -m pip install -r requirements.txt
-   ```
-3. Configure database DSN via env var (or `database.dsn` in YAML):
-   ```bash
-   export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres"
-   ```
-   
-## Data generation
-1. Run the bin activity pipeline:
+The following CLI commands assume an initialized database and an active virtual environment.
+The database tables `bin_activity`, `nfc_tag_mapping`, `tour`, `bin_visit` and `vehicle_emptying` should be empty before running the commands below.
+
+## Configuration
+All pipelines can be configured via the `.yaml` files in the `config` directory. 
+- The base configuration is provided in `config/base.yaml`. 
+- Service schedule parameters can be configured in `config/schedule.yaml`.
+- Parameters concerning the fill level simulation can be configured in `config/latent_filllevel.yaml`.
+
+
+## Bin Activity pipeline:
+Run with:
    ```bash
    PYTHONPATH=src python -m data_synthesization.main generate-bin-activity --config config/base.yaml
    ```
-2. Run the NFC tag mapping pipeline:
+Output:
+- The command should output `Loaded bins` and `Generated bin_activity rows`.
+- The generate data is stored in the `bin_activity` table.
+
+---
+
+## NFC Tag Mapping pipeline:
+Run with:
    ```bash
    PYTHONPATH=src python -m data_synthesization.main generate-nfc-tag-mapping --config config/base.yaml
    ```
-3. Run the tour pipeline:
+Output:
+- The command should output `Loaded Bins` and `Generated nfc_tag_mapping rows`.
+- The generate data is stored in the `nfc_tag_mapping` table.
+
+---
+
+## Tour pipeline:
+Run with:
    ```bash
    PYTHONPATH=src python -m data_synthesization.main generate-tours --config config/base.yaml
    ```
-4. Build a bin to neighbourhood mapping CSV for generator preprocessing:
+Output:
+- The command should output `Generated tour rows`, and `Generation days`.
+- The generate data is stored in the `tour` table.
+---
+
+## Prepare neighborhood data
+Build a bin to neighbourhood mapping CSV for generator preprocessing:
    ```bash
    python scripts/assign_bins_to_neighbourhoods.py
    ```
-   - Reads polygons from `/data/neighbourhoods.geojson`
-   - Writes output to `data/static/bin_neighbourhood_mapping.csv`.
+Output:
+- The command outputs a short summary of the number of bins assigned to each neighbourhood.
+- Under `/data/static/bin_neighbourhood_mapping.csv`, each row corresponds to a bin-to-neighbourhood assignment
 
-5. Download and prepare historical weather data for Neuchatel:
+---
+
+## Prepare historical weather data
+
+Download and prepare historical weather data for Neuchatel:
    ```bash
    python scripts/prepare_historical_weather_neuchatel.py --config config/base.yaml
    ```
-   - Downloads data from:
-     - `https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/neu/ogd-smn_neu_d_historical.csv` (up to 2025)
-     - `https://data.geo.admin.ch/ch.meteoschweiz.ogd-smn/neu/ogd-smn_neu_d_recent.csv` (2026 until yesterday)
-   - Removes rows before `simulation.start_date`
-   - Writes `data/static/historical_weater_neuchatle_DD-MM-YYYY.csv`
 
-6. Run the tour item pipeline:
+Hint:
+- on macOS, you may need to run pythons certificate installer first to avoid SSL errors when downloading the data:
+   ```bash
+   /Applications/Python\ 3.11/Install\ Certificates.command
+   ```
+
+Output:
+- The command outputs a summary of the number of rows downloaded and written to the output file.
+- Under `data/static/historical_weater_neuchatle_DD-MM-YYYY.csv`, each row corresponds to a day and contains the considered weather parameters for that day.
+
+
+---
+## Tour items pipeline:
+Run with:
    ```bash
    PYTHONPATH=src python -m data_synthesization.main generate-tour-items --config config/base.yaml
    ```
-
-## Notes
-- Scripts in `/docker-entrypoint-initdb.d` run only on first initialization of the data volume.
-- To re-run schema initialization, remove the `postgres-data` volume first:
-  ```bash
-  docker compose down -v
-  docker compose up -d
-  ```
+Output:
+- The command should output `Generated bin_visit rows`, and `Generated vehicle_emptying rows`.
+- The generated data is stored in the `bin_visit` and `vehicle_emptying` tables, respectively.
