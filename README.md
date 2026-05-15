@@ -3,7 +3,7 @@
 This repository contains code and data for the synthetic data generation component used in the thesis under consideration of `Project 2`'s data model.
 
 The data is generated based on real-world inputs such as bin locations, weather data, and events.
-Realistic assumptions are made about the data, because no sufficient empirical data is available.
+Realistic assumptions are made about the data because no sufficient empirical data is available.
 All generation assumptions, implementation details, and results are described in the thesis report.
 
 The repository includes four data generation pipelines.
