@@ -19,7 +19,7 @@ PYTHONPATH=src python -m data_synthesization.main generate-bin-activity --config
 ```
 Output:
 - The command should output `Loaded bins` and `Generated bin_activity rows`.
-- The generate data is stored in the `bin_activity` table.
+- The generated data is stored in the `bin_activity` table.
 
 ---
 
@@ -30,7 +30,7 @@ PYTHONPATH=src python -m data_synthesization.main generate-nfc-tag-mapping --con
 ```
 Output:
 - The command should output `Loaded Bins` and `Generated nfc_tag_mapping rows`.
-- The generate data is stored in the `nfc_tag_mapping` table.
+- The generated data is stored in the `nfc_tag_mapping` table.
 
 ---
 
@@ -41,7 +41,7 @@ PYTHONPATH=src python -m data_synthesization.main generate-tours --config config
 ```
 Output:
 - The command should output `Generated tour rows`, and `Generation days`.
-- The generate data is stored in the `tour` table.
+- The generated data is stored in the `tour` table.
 ---
 
 ## Prepare neighborhood data
@@ -57,13 +57,13 @@ Output:
 
 ## Prepare historical weather data
 
-Download and prepare historical weather data for Neuchatel:
+Download and prepare historical weather data for Neuchâtel:
 ```bash
 python scripts/prepare_historical_weather_neuchatel.py --config config/base.yaml
 ```
 
 Hint:
-- on macOS, you may need to run pythons certificate installer first to avoid SSL errors when downloading the data:
+- on macOS, you may need to run python's certificate installer first to avoid SSL errors when downloading the data:
 ```bash
 /Applications/Python\ 3.11/Install\ Certificates.command
 ```
