@@ -83,7 +83,7 @@ source .venv/bin/activate
 ```
 3. Provide the database url environment variable:
 ```bash
-export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres"
+export DATABASE_URL="postgresql://postgres:postgres@localhost:5430/postgres"
 ```
 
 ### Check
