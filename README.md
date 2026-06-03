@@ -48,6 +48,9 @@ The following versions are tested:
 
 ### Data
 All required data is provided in `/data` and `/sql`.
+Note that:
+- all `bin` data is publicly available.
+- all `vehicle` and `user_account` data is fictive test data.
 
 
 ---
